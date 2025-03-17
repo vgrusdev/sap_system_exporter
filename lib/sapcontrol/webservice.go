@@ -29,6 +29,8 @@ type WebService interface {
 
 	/* Custom method to get the current instance data. This is not something natively exposed by the webservice. */
 	GetCurrentInstance() (*CurrentSapInstance, error)
+
+	GetMyClient() (*MyClient)
 }
 
 type STATECOLOR string
@@ -164,6 +166,10 @@ func NewWebService(myClient *MyClient) WebService {
 		Client: myClient,
 		once:   &sync.Once{},
 	}
+}
+
+func (s *webService) GetMyClient() (*MyClient) {
+	return s.Client
 }
 
 // implements WebService.GetInstanceProperties()
