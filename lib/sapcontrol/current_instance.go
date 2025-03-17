@@ -33,7 +33,7 @@ func (s *webService) GetCurrentInstance() (*CurrentSapInstance, error) {
 
 	if err != nil {
 		err = errors.Wrap(err, "could not perform GetInstanceProperties query")
-		return
+		return s.currentSapInstance, err
 	}
 
 	for _, prop := range response.Properties {
@@ -43,11 +43,11 @@ func (s *webService) GetCurrentInstance() (*CurrentSapInstance, error) {
 			num, err = strconv.ParseInt(prop.Value, 10, 32)
 			if err != nil {
 				err = errors.Wrap(err, "could not parse instance number to int32")
-				return
+				return s.currentSapInstance, err
 			}
 			if num < math.MinInt32 || num > math.MaxInt32 {
 				err = errors.New("parsed instance number out of int32 range")
-				return
+				return s.currentSapInstance, err
 			}
 			s.currentSapInstance.Number = int32(num)
 		case "SAPSYSTEMNAME":
