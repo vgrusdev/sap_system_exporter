@@ -10,6 +10,8 @@ import (
 
 	"github.com/vgrusdev/sap_host_exporter/collector"
 	"github.com/vgrusdev/sap_host_exporter/lib/sapcontrol"
+
+	"github.com/hooklift/gowsdl/soap"
 )
 
 func NewCollector(webService sapcontrol.WebService) (*startServiceCollector, error) {
@@ -81,41 +83,6 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 	if err != nil {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
-
-	currentSapInstance, err := c.webService.GetCurrentInstance()
-	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
-	}
-
-	for _, instance := range instanceList.Instances {
-		// we only record the line relative to the current instance, to avoid duplicated metrics
-		// we need to check both instance nr and virtual hostname because with SAP you can never be safe enough
-		if instance.InstanceNr != currentSapInstance.Number || instance.Hostname != currentSapInstance.Hostname {
-			continue
-		}
-		instanceStatus, err := sapcontrol.StateColorToFloat(instance.Dispstatus)
-		if err != nil {
-			return errors.Wrapf(err, "unable to process SAPControl Instance data: %v", *instance)
-		}
-		ch <- c.MakeGaugeMetric(
-			"instances",
-			instanceStatus,
-			instance.Features,
-			instance.StartPriority,
-			currentSapInstance.Name,
-			strconv.Itoa(int(currentSapInstance.Number)),
-			currentSapInstance.SID,
-			currentSapInstance.Hostname,
-			string(instance.Dispstatus))
-	}
-
-	return nil
-}
-func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) error {
-	instanceList, err := c.webService.GetSystemInstanceList()
-	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
-	}
 	/*
 	currentSapInstance, err := c.webService.GetCurrentInstance()
 	if err != nil {
@@ -135,10 +102,10 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 			continue
 		}
 		*/
-		url = "http://" + instance.Hostname + ":" + instance.HttpPort
+		url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 		c.webService.client.url = url
-		
-		currentSapInstance, err := c.webService.GetCurrentInstance()
+
+		currentSapInstance, err = c.webService.GetCurrentInstance()
 		if err != nil {
 			c.webService.client.url = oldURL
 			return errors.Wrap(err, "SAPControl web service error")
