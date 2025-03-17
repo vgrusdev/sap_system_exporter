@@ -2,15 +2,13 @@ module github.com/vgrusdev/sap_host_exporter
 
 go 1.23
 
-toolchain go1.23.0
-
 require (
 	github.com/golang/mock v1.6.0
 	github.com/hooklift/gowsdl v0.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 )
