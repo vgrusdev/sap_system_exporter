@@ -63,6 +63,7 @@ func run() {
 	}
 
 	client := sapcontrol.NewSoapClient(globalConfig)
+	url := client.url
 	webService := sapcontrol.NewWebService(client)
 	currentSapInstance, err := webService.GetCurrentInstance()
 	if err != nil {
