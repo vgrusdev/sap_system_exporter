@@ -12,7 +12,7 @@ import (
 func New(flagSet *flag.FlagSet) (*viper.Viper, error) {
 	config := viper.New()
 
-	savedURL string nil
+	savedURL string = nil
 
 	err := config.BindPFlags(flagSet)
 	if err != nil {
