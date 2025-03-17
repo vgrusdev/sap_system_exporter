@@ -64,7 +64,7 @@ func run() {
 
 	myClient := sapcontrol.NewSoapClient(globalConfig)
 	webService := sapcontrol.NewWebService(myClient)
-	x := webService.Client.Config.viper
+	x := webService.Client
 	currentSapInstance, err := webService.GetCurrentInstance()
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "SAPControl web service error"))
@@ -90,13 +90,13 @@ func run() {
 		prometheus.Unregister(prometheus.NewGoCollector())
 	}
 
-	fullListenAddress := fmt.Sprintf("%s:%s", globalConfig.Get("address"), globalConfig.Get("port"))
+	//fullListenAddress := fmt.Sprintf("%s:%s", globalConfig.Get("address"), globalConfig.Get("port"))
 
 	http.HandleFunc("/", internal.Landing)
 	http.Handle("/metrics", promhttp.Handler())
 
-	log.Infof("Serving metrics on %s", fullListenAddress)
-	log.Fatal(http.ListenAndServe(fullListenAddress, nil))
+	//log.Infof("Serving metrics on %s", fullListenAddress)
+	//log.Fatal(http.ListenAndServe(fullListenAddress, nil))
 }
 
 func showHelp() {
