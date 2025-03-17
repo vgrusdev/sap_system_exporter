@@ -89,12 +89,15 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 	*/
-	var url string
+	// var url string
 	//var currentSapInstance currentSapInstance
 	
-	oldURL := c.WebService.client.url
+	/*
+	oldURL := c.webService.client
 
 	for _, instance := range instanceList.Instances {
+	*/
+	
 		/*
 		// we only record the line relative to the current instance, to avoid duplicated metrics
 		// we need to check both instance nr and virtual hostname because with SAP you can never be safe enough
@@ -102,6 +105,8 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 			continue
 		}
 		*/
+
+	/*
 		url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 		c.webService.client.url = url
 
@@ -127,5 +132,6 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 			string(instance.Dispstatus))
 	}
 	c.webService.client.url = oldURL
+	*/
 	return nil
 }
