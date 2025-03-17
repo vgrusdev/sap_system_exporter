@@ -92,7 +92,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 	var url string
 	//var currentSapInstance currentSapInstance
 	
-	oldURL := (c.webService).client.url
+	oldURL := c.WebService.client.url
 
 	for _, instance := range instanceList.Instances {
 		/*
