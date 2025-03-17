@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"sync"
 
-	"github.com/hooklift/gowsdl/soap"
+	//"github.com/hooklift/gowsdl/soap"
 	"github.com/pkg/errors"
 )
 
@@ -170,7 +170,7 @@ func NewWebService(myClient *MyClient) WebService {
 func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, error) {
 	request := &GetInstanceProperties{}
 	response := &GetInstancePropertiesResponse{}
-	client := s.Client.soapClient
+	client := s.Client.SoapClient
 	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
@@ -183,7 +183,7 @@ func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, er
 func (s *webService) GetProcessList() (*GetProcessListResponse, error) {
 	request := &GetProcessList{}
 	response := &GetProcessListResponse{}
-	client := s.Client.soapClient
+	client := s.Client.SoapClient
 	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
@@ -196,7 +196,7 @@ func (s *webService) GetProcessList() (*GetProcessListResponse, error) {
 func (s *webService) GetSystemInstanceList() (*GetSystemInstanceListResponse, error) {
 	request := &GetSystemInstanceList{}
 	response := &GetSystemInstanceListResponse{}
-	client := s.Client.soapClient
+	client := s.Client.SoapClient
 	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
@@ -209,7 +209,7 @@ func (s *webService) GetSystemInstanceList() (*GetSystemInstanceListResponse, er
 func (s *webService) EnqGetStatistic() (*EnqGetStatisticResponse, error) {
 	request := &EnqGetStatistic{}
 	response := &EnqGetStatisticResponse{}
-	client := s.Client.soapClient
+	client := s.Client.SoapClient
 	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
@@ -222,7 +222,7 @@ func (s *webService) EnqGetStatistic() (*EnqGetStatisticResponse, error) {
 func (s *webService) GetQueueStatistic() (*GetQueueStatisticResponse, error) {
 	request := &GetQueueStatistic{}
 	response := &GetQueueStatisticResponse{}
-	client := s.Client.soapClient
+	client := s.Client.SoapClient
 	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
