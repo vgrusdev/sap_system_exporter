@@ -2,7 +2,7 @@ package start_service
 
 import (
 	"strconv"
-
+    "fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -11,7 +11,7 @@ import (
 	"github.com/vgrusdev/sap_host_exporter/collector"
 	"github.com/vgrusdev/sap_host_exporter/lib/sapcontrol"
 
-	"github.com/hooklift/gowsdl/soap"
+	//"github.com/hooklift/gowsdl/soap"
 )
 
 func NewCollector(webService sapcontrol.WebService) (*startServiceCollector, error) {
@@ -90,9 +90,9 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 	}
 	*/
 	var url string
-	var currentSapInstance currentSapInstance
+	//var currentSapInstance currentSapInstance
 	
-	oldURL := c.webService.client.url
+	oldURL := (c.webService).client.url
 
 	for _, instance := range instanceList.Instances {
 		/*
@@ -105,7 +105,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 		url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 		c.webService.client.url = url
 
-		currentSapInstance, err = c.webService.GetCurrentInstance()
+		currentSapInstance, err := c.webService.GetCurrentInstance()
 		if err != nil {
 			c.webService.client.url = oldURL
 			return errors.Wrap(err, "SAPControl web service error")
