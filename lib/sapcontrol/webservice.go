@@ -153,15 +153,15 @@ type TaskHandlerQueue struct {
 }
 
 type webService struct {
-	Client             *soap.Client
+	Client             *myClient
 	once               *sync.Once
 	currentSapInstance *CurrentSapInstance
 }
 
 // constructor of a WebService interface
-func NewWebService(client *soap.Client) WebService {
+func NewWebService(myClient *myClient) WebService {
 	return &webService{
-		Client: client,
+		Client: myClient,
 		once:   &sync.Once{},
 	}
 }
@@ -170,7 +170,8 @@ func NewWebService(client *soap.Client) WebService {
 func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, error) {
 	request := &GetInstanceProperties{}
 	response := &GetInstancePropertiesResponse{}
-	err := s.Client.Call("''", request, response)
+	client := s.Client.soapClient
+	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +183,8 @@ func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, er
 func (s *webService) GetProcessList() (*GetProcessListResponse, error) {
 	request := &GetProcessList{}
 	response := &GetProcessListResponse{}
-	err := s.Client.Call("''", request, response)
+	client := s.Client.soapClient
+	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +196,8 @@ func (s *webService) GetProcessList() (*GetProcessListResponse, error) {
 func (s *webService) GetSystemInstanceList() (*GetSystemInstanceListResponse, error) {
 	request := &GetSystemInstanceList{}
 	response := &GetSystemInstanceListResponse{}
-	err := s.Client.Call("''", request, response)
+	client := s.Client.soapClient
+	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +209,8 @@ func (s *webService) GetSystemInstanceList() (*GetSystemInstanceListResponse, er
 func (s *webService) EnqGetStatistic() (*EnqGetStatisticResponse, error) {
 	request := &EnqGetStatistic{}
 	response := &EnqGetStatisticResponse{}
-	err := s.Client.Call("''", request, response)
+	client := s.Client.soapClient
+	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +222,8 @@ func (s *webService) EnqGetStatistic() (*EnqGetStatisticResponse, error) {
 func (s *webService) GetQueueStatistic() (*GetQueueStatisticResponse, error) {
 	request := &GetQueueStatistic{}
 	response := &GetQueueStatisticResponse{}
-	err := s.Client.Call("''", request, response)
+	client := s.Client.soapClient
+	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
 	}

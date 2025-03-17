@@ -9,8 +9,17 @@ import (
 	"github.com/spf13/viper"
 )
 
-func New(flagSet *flag.FlagSet) (*viper.Viper, error) {
+type myConfig struct {
+	viper *viper.Viper
+}
+
+func New(flagSet *flag.FlagSet) (*myConfig, error) {
+    
 	config := viper.New()
+
+	c := &myConfig {
+		viper = config
+	}
 
 	err := config.BindPFlags(flagSet)
 	if err != nil {
@@ -40,7 +49,7 @@ func New(flagSet *flag.FlagSet) (*viper.Viper, error) {
 		return nil, errors.Wrap(err, "invalid config value for sap-control-url")
 	}
 
-	return config, nil
+	return c, nil
 }
 
 // returns an error in case the sap-control-url config value cannot be parsed as URL
@@ -73,13 +82,14 @@ func sanitizeSapControlUrl(config *viper.Viper) {
 	}
 }
 
-func SetURL(config *viper.Viper, url string) error {
+(c *myConfig) func SetURL(url string) error {
 
+	config := c.viper
 	config.Set("sap-control-url", url)
 
 	sanitizeSapControlUrl(config)
 
-	err = validateSapControlUrl(config)
+	err := validateSapControlUrl(config)
 	if err != nil {
 		return errors.Wrap(err, "invalid config value for sap-control-url")
 	}

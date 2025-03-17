@@ -62,9 +62,9 @@ func run() {
 		log.Fatalf("Could not initialize config: %s", err)
 	}
 
-	client := sapcontrol.NewSoapClient(globalConfig)
-	webService := sapcontrol.NewWebService(client)
-	x := webService.Client
+	myClient := sapcontrol.NewSoapClient(globalConfig)
+	webService := sapcontrol.NewWebService(myClient)
+	x := webService.Client.Config.viper
 	currentSapInstance, err := webService.GetCurrentInstance()
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "SAPControl web service error"))
