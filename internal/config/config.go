@@ -82,7 +82,7 @@ func sanitizeSapControlUrl(config *viper.Viper) {
 	}
 }
 
-func (c *myConfig) SetURL(url string) error {
+func (c *MyConfig) SetURL(url string) error {
 
 	config := c.viper
 	config.Set("sap-control-url", url)
