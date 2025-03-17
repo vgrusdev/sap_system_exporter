@@ -18,7 +18,7 @@ func New(flagSet *flag.FlagSet) (*myConfig, error) {
 	config := viper.New()
 
 	c := &myConfig {
-		viper := config
+		viper: config
 	}
 
 	err := config.BindPFlags(flagSet)
