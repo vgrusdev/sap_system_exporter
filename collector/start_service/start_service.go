@@ -2,7 +2,7 @@ package start_service
 
 import (
 	"strconv"
-    "fmt"
+    //"fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -79,10 +79,10 @@ func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) err
 
 
 func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) error {
-	instanceList, err := c.webService.GetSystemInstanceList()
-	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
-	}
+	//instanceList, err := c.webService.GetSystemInstanceList()
+	//if err != nil {
+	//	return errors.Wrap(err, "SAPControl web service error")
+	//}
 	/*
 	currentSapInstance, err := c.webService.GetCurrentInstance()
 	if err != nil {
