@@ -12,8 +12,6 @@ import (
 func New(flagSet *flag.FlagSet) (*viper.Viper, error) {
 	config := viper.New()
 
-	var savedURL string = nil
-
 	err := config.BindPFlags(flagSet)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not bind config to CLI flags")
@@ -74,27 +72,9 @@ func sanitizeSapControlUrl(config *viper.Viper) {
 		config.Set("sap-control-url", sapControlUrl)
 	}
 }
-func SaveURL(config *viper.Viper) error {
-	if config.savedURL != nil {
-		return errors.Wrap(err, "URL already saved")
-	}
-	config.savedURL = config.GetString("sap-control-url")
-	return nil
-}
-func RestoreURL(config *viper.Viper) error {
-	if config.savedURL == nil {
-		return errors.Wrap(err, "URL was, not saved")
-	}
-	config.Set("sap-control-url", config.savedURL)
-	config.savedURL = nil
-	return nil
-}
+
 func SetURL(config *viper.Viper, url string) error {
 
-	err := config.SaveURL(config)
-	if err != nil {
-		return errors.Wrap(err, "always use config.RestoreURL() after config.SetURL()")
-	}
 	config.Set("sap-control-url", url)
 
 	sanitizeSapControlUrl(config)
