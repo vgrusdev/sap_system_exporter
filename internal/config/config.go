@@ -9,15 +9,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-type myConfig struct {
+type MyConfig struct {
 	viper *viper.Viper
 }
 
-func New(flagSet *flag.FlagSet) (*myConfig, error) {
+func New(flagSet *flag.FlagSet) (*MyConfig, error) {
     
 	config := viper.New()
 
-	c := &myConfig {
+	c := &MyConfig {
 		viper: config,
 	}
 

@@ -153,13 +153,13 @@ type TaskHandlerQueue struct {
 }
 
 type webService struct {
-	Client             *myClient
+	Client             *MyClient
 	once               *sync.Once
 	currentSapInstance *CurrentSapInstance
 }
 
 // constructor of a WebService interface
-func NewWebService(myClient *myClient) WebService {
+func NewWebService(myClient *MyClient) WebService {
 	return &webService{
 		Client: myClient,
 		once:   &sync.Once{},

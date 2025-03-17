@@ -7,17 +7,17 @@ import (
 
 	"github.com/hooklift/gowsdl/soap"
 	"github.com/spf13/viper"
-	"github.com/vgrusdev/sap_system_exporter/internal/config"
+	//"github.com/vgrusdev/sap_system_exporter/internal/config"
 )
 
-type myClient struct {
+type MyClient struct {
 	soapClient *soap.Client
-	Config     *config.myConfig
+	Config     *config.MyConfig
 }
 
-func NewSoapClient(myConfig *config.myConfig) *myClient {
+func NewSoapClient(myConfig *config.MyConfig) *MyClient {
 
-	c := &myClient{}
+	c := &MyClient{}
     config := myConfig.viper
 
 	c.soapClient = soap.NewClient(
