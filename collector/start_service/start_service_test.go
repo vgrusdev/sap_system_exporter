@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vgrusdev/sap_host_exporter/lib/sapcontrol"
-	"github.com/vgrusdev/sap_host_exporter/test/mock_sapcontrol"
+	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
+	"github.com/vgrusdev/sap_system_exporter/test/mock_sapcontrol"
 	"github.com/golang/mock/gomock"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"

@@ -9,7 +9,7 @@ import (
 )
 
 func loadConfigurationAutomatically(config *viper.Viper) error {
-	config.SetConfigName("sap_host_exporter")
+	config.SetConfigName("sap_system_exporter")
 	config.AddConfigPath("./")
 	config.AddConfigPath("$HOME/.config/")
 	config.AddConfigPath("/etc/")

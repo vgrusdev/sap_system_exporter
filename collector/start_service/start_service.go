@@ -8,8 +8,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/vgrusdev/sap_host_exporter/collector"
-	"github.com/vgrusdev/sap_host_exporter/lib/sapcontrol"
+	"github.com/vgrusdev/sap_system_exporter/collector"
+	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 
 	//"github.com/hooklift/gowsdl/soap"
 )

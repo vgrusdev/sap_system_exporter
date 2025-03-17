@@ -13,7 +13,7 @@ func Landing(w http.ResponseWriter, r *http.Request) {
 	<h2>Prometheus exporter for SAP systems</h2>
 	<ul>
 		<li><a href="metrics">Metrics</a></li>
-		<li><a href="https://github.com/vgrusdev/sap_host_exporter" target="_blank">GitHub</a></li>
+		<li><a href="https://github.com/vgrusdev/sap_system_exporter" target="_blank">GitHub</a></li>
 	</ul>
 </body>
 </html>
