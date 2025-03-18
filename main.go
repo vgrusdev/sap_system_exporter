@@ -57,20 +57,22 @@ func main() {
 func run() {
 	var err error
 
-	globalConfig, err := config.New(flag.CommandLine)
+	config, err := config.New(flag.CommandLine)
 	if err != nil {
 		log.Fatalf("Could not initialize config: %s", err)
 	}
 
-	client := sapcontrol.NewSoapClient(globalConfig)
+	client := sapcontrol.NewSoapClient(config)
 	webService := sapcontrol.NewWebService(client)
+
+	globalConfig := config.Viper
 	
 	// VG ++
-	x := webService.GetMyClient()
-	myConfig, _ := x.Config.Copy()
+	client = webService.GetMyClient()
+	myConfig, _ := client.Config.Copy()
 	_ = myConfig.SetURL("http://abc:3456")
-	client = sapcontrol.NewSoapClient(myConfig)
-	myWebService := sapcontrol.NewWebService(client)
+	myClient := sapcontrol.NewSoapClient(myConfig)
+	myWebService := sapcontrol.NewWebService(myClient)
 	
 	_, _ = myWebService.GetCurrentInstance()
 	// VG --
