@@ -64,8 +64,14 @@ func run() {
 
 	myClient := sapcontrol.NewSoapClient(globalConfig)
 	webService := sapcontrol.NewWebService(myClient)
+	
+	
 	x := webService.GetMyClient()
-	x.Config.SetURL("http://abc:3456")
+	myConfig, err := x.Config.Copy()
+	err = myConfig.SetURL("http://abc:3456")
+	myClient := sapcontrol.NewSoapClient(myConfig)
+	myWebService := sapcontrol.NewWebService(myClient)
+	
 	currentSapInstance, err := webService.GetCurrentInstance()
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "SAPControl web service error"))

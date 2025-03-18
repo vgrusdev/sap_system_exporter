@@ -10,7 +10,8 @@ import (
 )
 
 type MyConfig struct {
-	Viper *viper.Viper
+	flagSet *flag.FlagSet
+	Viper   *viper.Viper
 }
 
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
@@ -18,7 +19,8 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 	config := viper.New()
 
 	c := &MyConfig {
-		Viper: config,
+		flagSet: flagSet,
+		Viper:   config,
 	}
 
 	err := config.BindPFlags(flagSet)
@@ -82,6 +84,10 @@ func sanitizeSapControlUrl(config *viper.Viper) {
 	}
 }
 
+func (c *MyConfig) Copy() (*MyConfig, error) {
+
+	return New(c.flagSet)
+}
 func (c *MyConfig) SetURL(url string) error {
 
 	config := c.Viper

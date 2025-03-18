@@ -171,6 +171,9 @@ func NewWebService(myClient *MyClient) WebService {
 func (s *webService) GetMyClient() (*MyClient) {
 	return s.Client
 }
+func (s *webService) GetMyClientCopy() (*MyClient) {
+	
+}
 
 // implements WebService.GetInstanceProperties()
 func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, error) {
