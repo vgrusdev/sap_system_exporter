@@ -2,7 +2,7 @@ package start_service
 
 import (
 	"strconv"
-    //"fmt"
+    "fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -79,45 +79,37 @@ func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) err
 
 
 func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) error {
-	//instanceList, err := c.webService.GetSystemInstanceList()
-	//if err != nil {
-	//	return errors.Wrap(err, "SAPControl web service error")
-	//}
-	/*
-	currentSapInstance, err := c.webService.GetCurrentInstance()
+	instanceList, err := c.webService.GetSystemInstanceList()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
-	*/
-	// var url string
-	//var currentSapInstance currentSapInstance
-	
-	/*
-	oldURL := c.webService.client
+
+	client := c.webService.GetMyClient()
+	myConfig, err := client.Config.Copy()
+	if err != nil {
+		return errors.Wrap(err, "SAPControl config Copy error")
+	}
 
 	for _, instance := range instanceList.Instances {
-	*/
-	
-		/*
-		// we only record the line relative to the current instance, to avoid duplicated metrics
-		// we need to check both instance nr and virtual hostname because with SAP you can never be safe enough
-		if instance.InstanceNr != currentSapInstance.Number || instance.Hostname != currentSapInstance.Hostname {
-			continue
-		}
-		*/
 
-	/*
 		url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
-		c.webService.client.url = url
 
-		currentSapInstance, err := c.webService.GetCurrentInstance()
+		err := myConfig.SetURL(url)
 		if err != nil {
-			c.webService.client.url = oldURL
+			return errors.Wrap(err, "SAPControl URL error")
+		}
+		myClient := sapcontrol.NewSoapClient(myConfig)
+		myWebService := sapcontrol.NewWebService(myClient)
+	
+		currentSapInstance, err := myWebService.GetCurrentInstance()
+		if err != nil {
 			return errors.Wrap(err, "SAPControl web service error")
 		}
+		
+		log.Debugf("Collecting SAP Start Service metrics. \n url=%s\n currentSapInstance.Name=%s\n instance.InstanceNr=%s\n", url, currentSapInstance.Name, instance.InstanceNr)
+
 		instanceStatus, err := sapcontrol.StateColorToFloat(instance.Dispstatus)
 		if err != nil {
-			c.webService.client.url = oldURL
 			return errors.Wrapf(err, "unable to process SAPControl Instance data: %v", *instance)
 		}
 		ch <- c.MakeGaugeMetric(
@@ -131,7 +123,5 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 			currentSapInstance.Hostname,
 			string(instance.Dispstatus))
 	}
-	c.webService.client.url = oldURL
-	*/
 	return nil
 }

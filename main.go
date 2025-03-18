@@ -68,6 +68,7 @@ func run() {
 	globalConfig := config.Viper
 	
 	// VG ++
+	/*
 	client = webService.GetMyClient()
 	myConfig, _ := client.Config.Copy()
 	_ = myConfig.SetURL("http://abc:3456")
@@ -75,6 +76,7 @@ func run() {
 	myWebService := sapcontrol.NewWebService(myClient)
 	
 	_, _ = myWebService.GetCurrentInstance()
+	*/
 	// VG --
 
 	currentSapInstance, err := webService.GetCurrentInstance()
