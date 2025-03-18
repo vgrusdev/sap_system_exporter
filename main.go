@@ -62,20 +62,17 @@ func run() {
 		log.Fatalf("Could not initialize config: %s", err)
 	}
 
-	myClient := sapcontrol.NewSoapClient(globalConfig)
-	webService := sapcontrol.NewWebService(myClient)
+	client := sapcontrol.NewSoapClient(globalConfig)
+	webService := sapcontrol.NewWebService(client)
 	
 	// VG ++
 	x := webService.GetMyClient()
 	myConfig, _ := x.Config.Copy()
 	_ = myConfig.SetURL("http://abc:3456")
-	myClient = sapcontrol.NewSoapClient(myConfig)
-	myWebService = sapcontrol.NewWebService(myClient)
+	client = sapcontrol.NewSoapClient(myConfig)
+	myWebService := sapcontrol.NewWebService(client)
 	
-	currentSapInstance, err := myWebService.GetCurrentInstance()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "SAPControl web service error"))
-	}
+	_, _ = myWebService.GetCurrentInstance()
 	// VG --
 
 	currentSapInstance, err := webService.GetCurrentInstance()
@@ -103,13 +100,13 @@ func run() {
 		prometheus.Unregister(prometheus.NewGoCollector())
 	}
 
-	//fullListenAddress := fmt.Sprintf("%s:%s", globalConfig.Get("address"), globalConfig.Get("port"))
+	fullListenAddress := fmt.Sprintf("%s:%s", globalConfig.Get("address"), globalConfig.Get("port"))
 
 	http.HandleFunc("/", internal.Landing)
 	http.Handle("/metrics", promhttp.Handler())
 
-	//log.Infof("Serving metrics on %s", fullListenAddress)
-	//log.Fatal(http.ListenAndServe(fullListenAddress, nil))
+	log.Infof("Serving metrics on %s", fullListenAddress)
+	log.Fatal(http.ListenAndServe(fullListenAddress, nil))
 }
 
 func showHelp() {
