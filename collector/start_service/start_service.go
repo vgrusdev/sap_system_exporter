@@ -79,11 +79,14 @@ func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) err
 
 
 func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) error {
+	log.Debugln("SAP Instances collecting")
 	instanceList, err := c.webService.GetSystemInstanceList()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
+	log.Debugf(" Instances in the list: %d\n", len(instanceList.Instances) )
+	
 	client := c.webService.GetMyClient()
 	myConfig, err := client.Config.Copy()
 	if err != nil {
@@ -106,7 +109,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 			return errors.Wrap(err, "SAPControl web service error")
 		}
 		
-		log.Debugf("Collecting SAP Start Service metrics. \n url=%s\n currentSapInstance.Name=%s\n instance.InstanceNr=%s\n", url, currentSapInstance.Name, instance.InstanceNr)
+		log.Debugf("Collecting SAP Start Service metrics. \n url=%s\n currentSapInstance.Name=%s\n instance.InstanceNr=%d\n", url, currentSapInstance.Name, instance.InstanceNr)
 
 		instanceStatus, err := sapcontrol.StateColorToFloat(instance.Dispstatus)
 		if err != nil {
