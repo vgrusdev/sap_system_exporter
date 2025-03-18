@@ -67,10 +67,10 @@ func run() {
 	
 	
 	x := webService.GetMyClient()
-	myConfig, err := x.Config.Copy()
-	err = myConfig.SetURL("http://abc:3456")
+	myConfig, _ := x.Config.Copy()
+	_ = myConfig.SetURL("http://abc:3456")
 	myClient := sapcontrol.NewSoapClient(myConfig)
-	myWebService := sapcontrol.NewWebService(myClient)
+	_ := sapcontrol.NewWebService(myClient)
 	
 	currentSapInstance, err := webService.GetCurrentInstance()
 	if err != nil {
