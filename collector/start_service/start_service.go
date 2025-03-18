@@ -92,7 +92,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 
 	for _, instance := range instanceList.Instances {
 
-		url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+		url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 
 		err := myConfig.SetURL(url)
 		if err != nil {
