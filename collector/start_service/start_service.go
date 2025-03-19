@@ -47,31 +47,62 @@ func (c *startServiceCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) error {
-	processList, err := c.webService.GetProcessList()
+	// VG ++    loop on instances
+	log.Debugln("SAP Processes collecting")
+	instanceList, err := c.webService.GetSystemInstanceList()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
-	currentSapInstance, err := c.webService.GetCurrentInstance()
+	log.Debugf(" Instances in the list: %d\n", len(instanceList.Instances) )
+
+	client := c.webService.GetMyClient()
+	myConfig, err := client.Config.Copy()
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
+		return errors.Wrap(err, "SAPControl config Copy error")
 	}
 
-	for _, process := range processList.Processes {
-		state, err := sapcontrol.StateColorToFloat(process.Dispstatus)
+	for _, instance := range instanceList.Instances {
+
+		url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+
+		err := myConfig.SetURL(url)
 		if err != nil {
-			return errors.Wrapf(err, "unable to process SAPControl OSProcess data: %v", *process)
+			log.Warnf("SAPControl URL error (%s): %s", url, err)
+			continue
 		}
-		ch <- c.MakeGaugeMetric(
-			"processes",
-			state,
-			process.Name,
-			strconv.Itoa(int(process.Pid)),
-			process.Textstatus,
-			currentSapInstance.Name,
-			strconv.Itoa(int(currentSapInstance.Number)),
-			currentSapInstance.SID,
-			currentSapInstance.Hostname)
+		myClient := sapcontrol.NewSoapClient(myConfig)
+		myWebService := sapcontrol.NewWebService(myClient)
+
+		processList, err := myWebService.GetProcessList()
+		if err != nil {
+			log.Warnf("SAPControl web service error: %s", err)
+			continue
+		}
+
+		currentSapInstance, err := myWebService.GetCurrentInstance()
+		if err != nil {
+			log.warnf("SAPControl web service error: %s", err)
+			continue
+		}
+
+		for _, process := range processList.Processes {
+			state, err := sapcontrol.StateColorToFloat(process.Dispstatus)
+			if err != nil {
+				log.Warnf("SAPControl web service error, unable to process SAPControl OSProcess data %v: %s", *process, err)
+				continue
+			}
+			ch <- c.MakeGaugeMetric(
+				"processes",
+				state,
+				process.Name,
+				strconv.Itoa(int(process.Pid)),
+				process.Textstatus,
+				currentSapInstance.Name,
+				strconv.Itoa(int(currentSapInstance.Number)),
+				currentSapInstance.SID,
+				currentSapInstance.Hostname)
+		}
 	}
 
 	return nil
