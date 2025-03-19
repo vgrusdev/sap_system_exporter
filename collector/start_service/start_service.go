@@ -99,7 +99,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 
 		err := myConfig.SetURL(url)
 		if err != nil {
-			errors.Wrapf(err, "SAPControl URL error: %s", url)
+			log.Warnf("SAPControl URL error (%s): %s", url, err)
 			continue
 		}
 		myClient := sapcontrol.NewSoapClient(myConfig)
@@ -107,7 +107,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 	
 		currentSapInstance, err := myWebService.GetCurrentInstance()
 		if err != nil {
-			errors.Wrap(err, "SAPControl web service error")
+			log.Warnf("SAPControl web service error: %s", err)
 			continue
 		}
 		
@@ -115,7 +115,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 
 		instanceStatus, err := sapcontrol.StateColorToFloat(instance.Dispstatus)
 		if err != nil {
-			errors.Wrapf(err, "unable to process SAPControl Instance data: %v", *instance)
+			log.Warnf("SAPControl web service error, unable to process SAPControl Instance data %v: %s", *instance, err)
 			continue
 		}
 		ch <- c.MakeGaugeMetric(
