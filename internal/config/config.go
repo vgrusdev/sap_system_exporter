@@ -35,10 +35,10 @@ func (n *discardHandler) WithGroup(_ string) slog.Handler {
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
     
 	viperLogger := slog.New(&discardHandler{})
-	viperLogger.SetLogLoggerLevel(viperLogger.LevelDebug)
+	viperLogger.SetLogLoggerLevel(slog.LevelDebug)
 
-	config := viper.New()
-	config.WithLogger(viperLogger)
+	//config := viper.New()
+	config := viper.NewWithOptions(viper.WithLigger(viperLogger))
 
 	c := &MyConfig {
 		flagSet: flagSet,
