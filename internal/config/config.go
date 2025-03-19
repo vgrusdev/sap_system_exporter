@@ -3,6 +3,7 @@ package config
 import (
 	"net/url"
 	"regexp"
+	"log/slog"
 
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
@@ -14,9 +15,15 @@ type MyConfig struct {
 	Viper   *viper.Viper
 }
 
+type discardHandler struct{}
+
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
     
+	viperLogger := slog.New(&discardHandler{})
+	viperLogger.SetLogLoggerLevel(slog.LevelDebug)
+
 	config := viper.New()
+	config.WithLogger(viperLogger)
 
 	c := &MyConfig {
 		flagSet: flagSet,
@@ -43,6 +50,7 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 	}
 
 	setLogLevel(config.GetString("log-level"))
+	viperLogger.SetLogLoggerLevel(slog.LevelError)
 
 	sanitizeSapControlUrl(config)
 
