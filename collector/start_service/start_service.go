@@ -82,7 +82,7 @@ func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) err
 
 		currentSapInstance, err := myWebService.GetCurrentInstance()
 		if err != nil {
-			log.warnf("SAPControl web service error: %s", err)
+			log.Warnf("SAPControl web service error: %s", err)
 			continue
 		}
 
