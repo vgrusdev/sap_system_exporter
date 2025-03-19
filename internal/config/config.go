@@ -3,7 +3,9 @@ package config
 import (
 	"net/url"
 	"regexp"
+
 	"log/slog"
+	"context"
 
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
@@ -17,10 +19,23 @@ type MyConfig struct {
 
 type discardHandler struct{}
 
+func (n *discardHandler) Enabled(_ context.Context, _ slog.Level) bool {
+	return false
+}
+func (n *discardHandler) Handle(_ context.Context, _ slog.Record) error {
+	return nil
+}
+func (n *discardHandler) WithAttrs(_ []slog.Attr) slog.Handler {
+	return n
+}
+func (n *discardHandler) WithGroup(_ string) slog.Handler {
+	return n
+}
+
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
     
 	viperLogger := slog.New(&discardHandler{})
-	viperLogger.SetLogLoggerLevel(slog.LevelDebug)
+	viperLogger.SetLogLoggerLevel(viperLogger.LevelDebug)
 
 	config := viper.New()
 	config.WithLogger(viperLogger)
