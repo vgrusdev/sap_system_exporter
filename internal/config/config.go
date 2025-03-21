@@ -4,9 +4,9 @@ import (
 	"net/url"
 	"regexp"
 
-	"log/slog"
-	"context"
-	"fmt"
+	//"log/slog"
+	//"context"
+	//"fmt"
 
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
