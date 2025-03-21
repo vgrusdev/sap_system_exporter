@@ -60,6 +60,8 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 		return nil, errors.Wrap(err, "could not bind config to CLI flags")
 	}
 
+	fmt.Printf("====> Point 1\n")
+
 	// try to get the "config" value from the bound "config" CLI flag
 	path := config.GetString("config")
 	if path != "" {
@@ -70,14 +72,19 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 		err = loadConfigurationAutomatically(config)
 	}
 
+	fmt.Printf("====> Point 2\n")
+
 	if err != nil {
 		return nil, errors.Wrap(err, "could not load configuration file")
 	}
 
+	fmt.Printf("====> Point 3\n")
 	setLogLevel(config.GetString("log-level"))
 	myHandler.Level = slog.LevelError
 	myHandler.SetLevel(slog.LevelError)
 	fmt.Printf("Setting new Log level: slog.LevelError=%d, myHandler.Level=%d\n", slog.LevelError, myHandler.Level)
+
+	fmt.Printf("====> Point 4\n")
 
 	sanitizeSapControlUrl(config)
 
