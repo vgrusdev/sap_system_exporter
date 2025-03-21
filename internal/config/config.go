@@ -16,6 +16,8 @@ import (
 type MyConfig struct {
 	flagSet *flag.FlagSet
 	Viper   *viper.Viper
+	Handler	*discardHandler
+	logger  *slog.Logger
 }
 
 type discardHandler struct{
@@ -54,14 +56,19 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 	c := &MyConfig {
 		flagSet: flagSet,
 		Viper:   config,
+		handler: myHandler,
+		logger:  viperLogger,
 	}
+	return ConfigSetup(c)
+}
 
-	err := config.BindPFlags(flagSet)
+func ConfigSetup(c *MyConfig) (MyConfig, error) {
+
+	config := c.Viper
+	err := config.BindPFlags(c.flagSet)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not bind config to CLI flags")
 	}
-
-	fmt.Printf("====> Point 1\n")
 
 	// try to get the "config" value from the bound "config" CLI flag
 	path := config.GetString("config")
@@ -73,27 +80,17 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 		err = loadConfigurationAutomatically(config)
 	}
 
-	fmt.Printf("====> Point 2\n")
-
 	if err != nil {
 		return nil, errors.Wrap(err, "could not load configuration file")
 	}
 
-	fmt.Printf("====> Point 3\n")
 	setLogLevel(config.GetString("log-level"))
-	myHandler.Level = slog.LevelError
-	myHandler.SetLevel(slog.LevelError)
-	fmt.Printf("Setting new Log level: slog.LevelError=%d, myHandler.Level=%d\n", slog.LevelError, myHandler.Level)
-
-	fmt.Printf("====> Point 4\n")
 
 	sanitizeSapControlUrl(config)
-
 	err = validateSapControlUrl(config)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid config value for sap-control-url")
 	}
-
 	return c, nil
 }
 
@@ -129,7 +126,18 @@ func sanitizeSapControlUrl(config *viper.Viper) {
 
 func (c *MyConfig) Copy() (*MyConfig, error) {
 
-	return New(c.flagSet)
+	c.handler.Level = slog.LevelError
+
+	config := viper.NewWithOptions(viper.WithLogger(c.logger))
+
+	cc := &MyConfig {
+		flagSet: c.flagSet,
+		Viper:   config,
+		handler: c.handler,
+		logger:  c.logger,
+	}
+	return ConfigSetup(cc)
+
 }
 func (c *MyConfig) SetURL(url string) error {
 
