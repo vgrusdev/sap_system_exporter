@@ -50,8 +50,8 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 	}
 	viperLogger := slog.New(myHandler)
 
-	//config := viper.New()
-	config := viper.NewWithOptions(viper.WithLogger(viperLogger))
+	config := viper.New()
+	//config := viper.NewWithOptions(viper.WithLogger(viperLogger))
 
 	c := &MyConfig {
 		flagSet: flagSet,
