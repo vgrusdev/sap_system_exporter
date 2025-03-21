@@ -16,7 +16,7 @@ import (
 type MyConfig struct {
 	flagSet *flag.FlagSet
 	Viper   *viper.Viper
-	Handler	*discardHandler
+	handler	*discardHandler
 	logger  *slog.Logger
 }
 
