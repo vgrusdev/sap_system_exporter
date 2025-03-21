@@ -62,7 +62,7 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 	return ConfigSetup(c)
 }
 
-func ConfigSetup(c *MyConfig) (MyConfig, error) {
+func ConfigSetup(c *MyConfig) (*MyConfig, error) {
 
 	config := c.Viper
 	err := config.BindPFlags(c.flagSet)
