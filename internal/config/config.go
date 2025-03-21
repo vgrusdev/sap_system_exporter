@@ -16,56 +16,18 @@ import (
 type MyConfig struct {
 	flagSet *flag.FlagSet
 	Viper   *viper.Viper
-	handler	*discardHandler
-	logger  *slog.Logger
-}
-
-type discardHandler struct{
-	Level slog.Level
-}
-
-func (n *discardHandler) Enabled(_ context.Context, level slog.Level) bool {
-	//return false
-	fmt.Printf("logHandler-Enables: n.Level=%d, level=%d, return=%v\n", n.Level, level, level >= n.Level)
-	return level >= n.Level
-}
-func (n *discardHandler) Handle(_ context.Context, _ slog.Record) error {
-	return nil
-}
-func (n *discardHandler) WithAttrs(_ []slog.Attr) slog.Handler {
-	return n
-}
-func (n *discardHandler) WithGroup(_ string) slog.Handler {
-	return n
-}
-func (n *discardHandler) SetLevel(level slog.Level) {
-	n.Level = level
-	fmt.Printf("logHandler-SetLevel: new n.Level=%d\n, n.Level")
 }
 
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
     
-	myHandler := &discardHandler {
-		Level: slog.LevelInfo,
-	}
-	viperLogger := slog.New(myHandler)
-
 	config := viper.New()
-	//config := viper.NewWithOptions(viper.WithLogger(viperLogger))
 
 	c := &MyConfig {
 		flagSet: flagSet,
 		Viper:   config,
-		handler: myHandler,
-		logger:  viperLogger,
 	}
-	return ConfigSetup(c)
-}
 
-func ConfigSetup(c *MyConfig) (*MyConfig, error) {
-
-	config := c.Viper
-	err := config.BindPFlags(c.flagSet)
+	err := config.BindPFlags(flagSet)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not bind config to CLI flags")
 	}
@@ -125,22 +87,9 @@ func sanitizeSapControlUrl(config *viper.Viper) {
 }
 
 func (c *MyConfig) Copy() (*MyConfig, error) {
-
 	return New(c.flagSet)
-	/*
-	c.handler.Level = slog.LevelError
-
-	config := viper.NewWithOptions(viper.WithLogger(c.logger))
-
-	cc := &MyConfig {
-		flagSet: c.flagSet,
-		Viper:   config,
-		handler: c.handler,
-		logger:  c.logger,
-	}
-	return ConfigSetup(cc)
-	*/
 }
+
 func (c *MyConfig) SetURL(url string) error {
 
 	config := c.Viper
