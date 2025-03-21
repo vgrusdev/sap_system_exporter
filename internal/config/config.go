@@ -76,7 +76,7 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 
 	setLogLevel(config.GetString("log-level"))
 	myHandler.Level = slog.LevelError
-	SetLevel.SetLevel(slog.LevelError)
+	myHandler.SetLevel(slog.LevelError)
 	fmt.Printf("Setting new Log level: slog.LevelError=%d, myHandler.Level=%d\n", slog.LevelError, myHandler.Level)
 
 	sanitizeSapControlUrl(config)
