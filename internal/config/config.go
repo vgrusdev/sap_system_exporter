@@ -126,6 +126,8 @@ func sanitizeSapControlUrl(config *viper.Viper) {
 
 func (c *MyConfig) Copy() (*MyConfig, error) {
 
+	return New(c.flagSet)
+	/*
 	c.handler.Level = slog.LevelError
 
 	config := viper.NewWithOptions(viper.WithLogger(c.logger))
@@ -137,7 +139,7 @@ func (c *MyConfig) Copy() (*MyConfig, error) {
 		logger:  c.logger,
 	}
 	return ConfigSetup(cc)
-
+	*/
 }
 func (c *MyConfig) SetURL(url string) error {
 
