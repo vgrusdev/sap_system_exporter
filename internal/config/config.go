@@ -24,7 +24,7 @@ type discardHandler struct{
 
 func (n *discardHandler) Enabled(_ context.Context, level slog.Level) bool {
 	//return false
-	fmtPrintf("logHandler-Enables: n.Level=%d, level=%d, return=%v", n.Level, level, level >= n.Level)
+	fmtPrintf("logHandler-Enables: n.Level=%d, level=%d, return=%v\n", n.Level, level, level >= n.Level)
 	return level >= n.Level
 }
 func (n *discardHandler) Handle(_ context.Context, _ slog.Record) error {
