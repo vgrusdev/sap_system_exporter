@@ -38,6 +38,7 @@ func (n *discardHandler) WithGroup(_ string) slog.Handler {
 }
 func (n *discardHandler) SetLevel(level slog.Level) {
 	n.Level = level
+	fmt.Printf("logHandler-SetLevel: new n.Level=%d\n, n.Level")
 }
 
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
