@@ -36,6 +36,9 @@ func (n *discardHandler) WithAttrs(_ []slog.Attr) slog.Handler {
 func (n *discardHandler) WithGroup(_ string) slog.Handler {
 	return n
 }
+func (n *discardHandler) SetLevel(level slog.Level) {
+	n.Level = level
+}
 
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
     
@@ -73,6 +76,8 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 
 	setLogLevel(config.GetString("log-level"))
 	myHandler.Level = slog.LevelError
+	SetLevel.SetLevel(slog.LevelError)
+	fmt.Printf("Setting new Log level: slog.LevelError=%d, myHandler.Level=%d\n", slog.LevelError, myHandler.Level)
 
 	sanitizeSapControlUrl(config)
 
