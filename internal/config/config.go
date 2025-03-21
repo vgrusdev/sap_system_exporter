@@ -17,10 +17,13 @@ type MyConfig struct {
 	Viper   *viper.Viper
 }
 
-type discardHandler struct{}
+type discardHandler struct{
+	Level slog.Level
+}
 
-func (n *discardHandler) Enabled(_ context.Context, _ slog.Level) bool {
-	return false
+func (n *discardHandler) Enabled(_ context.Context, level slog.Level) bool {
+	//return false
+	return level >= n.Level
 }
 func (n *discardHandler) Handle(_ context.Context, _ slog.Record) error {
 	return nil
@@ -34,11 +37,13 @@ func (n *discardHandler) WithGroup(_ string) slog.Handler {
 
 func New(flagSet *flag.FlagSet) (*MyConfig, error) {
     
-	viperLogger := slog.New(&discardHandler{})
-	viperLogger.SetLogLoggerLevel(slog.LevelDebug)
+	myHandler := &discardHandler {
+		Level: slog.LevelInfo,
+	}
+	viperLogger := slog.New(myHandler)
 
 	//config := viper.New()
-	config := viper.NewWithOptions(viper.WithLigger(viperLogger))
+	config := viper.NewWithOptions(viper.WithLogger(viperLogger))
 
 	c := &MyConfig {
 		flagSet: flagSet,
@@ -65,7 +70,7 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 	}
 
 	setLogLevel(config.GetString("log-level"))
-	viperLogger.SetLogLoggerLevel(slog.LevelError)
+	myHandler.Level = slog.LevelError
 
 	sanitizeSapControlUrl(config)
 
