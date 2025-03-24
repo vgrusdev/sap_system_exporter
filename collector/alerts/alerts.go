@@ -69,8 +69,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			alert.Description,
 			alert.Time,
 			alert.Tid,
-			alert.Aid
-		)
+			alert.Aid)
 	}
 
 	return nil
