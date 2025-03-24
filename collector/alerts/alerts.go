@@ -15,11 +15,12 @@ import (
 func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 
 	c := &alertsCollector{
-		collector.NewDefaultCollector("sap_alerts"),
+		collector.NewDefaultCollector("alerts"),
 		webService,
 	}
 
-	c.SetDescriptor("alerts", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "Time", "Tid", "Aid"})
+	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "Time", "Tid", "Aid"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "Time"})
 
 	return c, nil
 }
@@ -58,7 +59,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			continue
 		}
 		ch <- c.MakeGaugeMetric(
-			"alerts",
+			"Alert",
 			state,
 			currentSapInstance.Name,
 			strconv.Itoa(int(currentSapInstance.Number)),
@@ -67,9 +68,9 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			alert.Object,
 			alert.Attribute,
 			alert.Description,
-			alert.Time,
-			alert.Tid,
-			alert.Aid)
+			alert.Time)
+			//alert.Tid,
+			//alert.Aid)
 	}
 
 	return nil
