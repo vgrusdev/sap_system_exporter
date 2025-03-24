@@ -30,6 +30,8 @@ type WebService interface {
 	/* Custom method to get the current instance data. This is not something natively exposed by the webservice. */
 	GetCurrentInstance() (*CurrentSapInstance, error)
 
+	GetAlerts() (*GetAlertsResponse, error)
+
 	GetMyClient() (*MyClient)
 }
 
@@ -154,6 +156,27 @@ type TaskHandlerQueue struct {
 	Reads  int32  `xml:"Reads,omitempty" json:"Reads,omitempty"`
 }
 
+type GetAlerts struct {
+	XMLName xml.Name `xml:"urn:SAPControl GetAlerts"`
+	RootTid string   `xml:"RootTid,omitempty" json:"RootTid,omitempty"`
+}
+
+type GetAlertsResponse struct {
+	XMLName     xml.Name   `xml:"urn:SAPControl GetAlertsResponse"`
+	RootTidName string     `xml:"RootTidName,omitempty" json:"RootTidName,omitempty"`
+	Alerts      []*Alert   `xml:"alert>item,omitempty" json:"instance>item,omitempty"`
+}
+
+type Alert struct {
+	Object      string     `xml:"Object,omitempty" json:"Object,omitempty"`
+	Attribute   string     `xml:"Attribute,omitempty" json:"Attribute,omitempty"`
+	Value       STATECOLOR `xml:"Value,omitempty" json:"Value,omitempty"`
+	Description string     `xml:"Description,omitempty" json:"Description,omitempty"`
+	Time        string     `xml:"Time,omitempty" json:"Time,omitempty"`
+	Tid         string     `xml:"Tid,omitempty" json:"Tid,omitempty"`
+	Aid         string     `xml:"Aid,omitempty" json:"Aid,omitempty"`
+}
+
 type webService struct {
 	Client             *MyClient
 	once               *sync.Once
@@ -229,6 +252,19 @@ func (s *webService) EnqGetStatistic() (*EnqGetStatisticResponse, error) {
 func (s *webService) GetQueueStatistic() (*GetQueueStatisticResponse, error) {
 	request := &GetQueueStatistic{}
 	response := &GetQueueStatisticResponse{}
+	client := s.Client.SoapClient
+	err := client.Call("''", request, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// implements WebService.GetAlerts()
+func (s *webService) GetAlerts() (*GetAlertsResponse, error) {
+	request := &GetAlerts{}
+	response := &GetAlertsResponse{}
 	client := s.Client.SoapClient
 	err := client.Call("''", request, response)
 	if err != nil {
