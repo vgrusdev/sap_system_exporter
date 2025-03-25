@@ -41,13 +41,13 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 type current_alert  struct {
-	State:       float64
-	Object:      string
-	Attribute:   string
-	Description: string
-	ATime:       string
-	//Tid:         string
-	//Aid:         string
+	State       float64
+	Object      string
+	Attribute   string
+	Description string
+	ATime       string
+	//Tid         string
+	//Aid         string
 }
 
 func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
