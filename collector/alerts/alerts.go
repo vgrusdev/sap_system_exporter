@@ -19,8 +19,8 @@ func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 		webService,
 	}
 
-	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "Time", "Tid", "Aid"})
-	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "Time"})
+	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime"})
 
 	return c, nil
 }
@@ -40,6 +40,16 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
+type current_alert  struct {
+	State:       float64
+	Object:      string
+	Attribute:   string
+	Description: string
+	ATime:       string
+	//Tid:         string
+	//Aid:         string
+}
+
 func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 	alertList, err := c.webService.GetAlerts()
 	if err != nil {
@@ -51,6 +61,8 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
+	var alert_item_list []current_alert
+	var alert_item        current_alert
 
 	for _, alert := range alertList.Alerts {
 		state, err := sapcontrol.StateColorToFloat(alert.Value)
@@ -58,17 +70,33 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", *alert, err)
 			continue
 		}
+		alert_item = current_alert {
+			State:       state,
+			Object:      alert.Object,
+			Attribute:   alert.Attribute,
+			Description: alert.Description,
+			ATime:       alert.ATime,
+			//Tid:         alert.Tid,
+			//Aid:         alert.Aid,
+		}
+		alert_item_list = append(alert_item_list, alert_item)
+	}
+	
+	alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
+
+	for _, alert_item := range alert_item_list {
+
 		ch <- c.MakeGaugeMetric(
 			"Alert",
-			state,
+			alert_item.State,
 			currentSapInstance.Name,
 			strconv.Itoa(int(currentSapInstance.Number)),
 			currentSapInstance.SID,
 			currentSapInstance.Hostname,
-			alert.Object,
-			alert.Attribute,
-			alert.Description,
-			alert.Time)
+			alert_item.Object,
+			alert_item.Attribute,
+			alert_item.Description,
+			alert_item.ATime)
 			//alert.Tid,
 			//alert.Aid)
 	}

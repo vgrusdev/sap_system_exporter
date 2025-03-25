@@ -172,7 +172,7 @@ type Alert struct {
 	Attribute   string     `xml:"Attribute,omitempty" json:"Attribute,omitempty"`
 	Value       STATECOLOR `xml:"Value,omitempty" json:"Value,omitempty"`
 	Description string     `xml:"Description,omitempty" json:"Description,omitempty"`
-	Time        string     `xml:"Time,omitempty" json:"Time,omitempty"`
+	ATime        string     `xml:"Time,omitempty" json:"Time,omitempty"`
 	Tid         string     `xml:"Tid,omitempty" json:"Tid,omitempty"`
 	Aid         string     `xml:"Aid,omitempty" json:"Aid,omitempty"`
 }
@@ -288,4 +288,18 @@ func StateColorToFloat(statecolor STATECOLOR) (float64, error) {
 	default:
 		return -1, errors.New("Invalid STATECOLOR value")
 	}
+}
+
+// removes any duplicates in the array of comparable elements, e.g. structs
+//  parameter - array, returns same type array, but w/o duplicated elements
+func RemoveDuplicate[T comparable](sliceList []T) []T {
+    allKeys := make(map[T]bool)
+    list := []T{}
+    for _, item := range sliceList {
+        if _, value := allKeys[item]; !value {
+            allKeys[item] = true
+            list = append(list, item)
+        }
+    }
+    return list
 }
