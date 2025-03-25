@@ -65,11 +65,13 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 	var alert_item        current_alert
 
 	for _, alert := range alertList.Alerts {
+		/*
 		state, err := sapcontrol.StateColorToFloat(alert.Value)
 		if err != nil {
 			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", *alert, err)
 			continue
 		}
+		*/
 		alert_item = current_alert {
 			//State:       state,
 			Object:      alert.Object,
