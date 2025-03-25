@@ -41,7 +41,7 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 type current_alert  struct {
-	State       float64
+	//State       float64
 	Object      string
 	Attribute   string
 	Description string
@@ -71,7 +71,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			continue
 		}
 		alert_item = current_alert {
-			State:       state,
+			//State:       state,
 			Object:      alert.Object,
 			Attribute:   alert.Attribute,
 			Description: alert.Description,
@@ -82,13 +82,18 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		alert_item_list = append(alert_item_list, alert_item)
 	}
 	
+	log.Debugf("Alerts in the list before remove duplicates: %d\n", len(alert_item_list) )
+
+
 	alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
+
+	log.Debugf("Alerts in the list AFTER remove duplicates: %d\n", len(alert_item_list) )
 
 	for _, alert_item := range alert_item_list {
 
 		ch <- c.MakeGaugeMetric(
 			"Alert",
-			alert_item.State,
+			4.0,
 			currentSapInstance.Name,
 			strconv.Itoa(int(currentSapInstance.Number)),
 			currentSapInstance.SID,
