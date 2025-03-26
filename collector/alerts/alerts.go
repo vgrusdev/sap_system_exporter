@@ -20,7 +20,8 @@ func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 	}
 
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
-	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
+	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "State"})
 
 	return c, nil
 }
@@ -46,7 +47,8 @@ type current_alert  struct {
 	Attribute   string
 	Description string
 	ATime       string
-	Aluniqnum   string
+	StateColor  string
+	//Aluniqnum   string
 	//Tid         string
 	//Aid         string
 }
@@ -73,7 +75,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			continue
 		}
 
-		aid_map := sapcontrol.Make_string_map(alert.Aid)
+		//aid_map := sapcontrol.Make_string_map(alert.Aid)
 
 		alert_item = current_alert {
 			State:       state,
@@ -81,7 +83,8 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			Attribute:   alert.Attribute,
 			Description: alert.Description,
 			ATime:       alert.ATime,
-			Aluniqnum:   aid_map["ALUNIQNUM"],
+			StateColor:  string(alert.Value),
+			//Aluniqnum:   aid_map["ALUNIQNUM"],
 			//Tid:         alert.Tid,
 			//Aid:         alert.Aid,
 		}
@@ -108,7 +111,8 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			alert_item.Attribute,
 			alert_item.Description,
 			alert_item.ATime,
-		    alert_item.Aluniqnum)
+			alert_item.StateColor)
+		    //alert_item.Aluniqnum)
 			//alert.Tid,
 			//alert.Aid)
 	}
