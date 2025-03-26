@@ -74,7 +74,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		}
 		*/
 
-		aid_map := make_string_map(alert.Aid)
+		aid_map := sapcontrol.make_string_map(alert.Aid)
 
 		alert_item = current_alert {
 			//State:       state,
@@ -82,7 +82,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			Attribute:   alert.Attribute,
 			Description: alert.Description,
 			ATime:       alert.ATime,
-			Alunuqnum:   aid_map[ALUNIQNUM],
+			Aluniqnum:   aid_map["ALUNIQNUM"],
 			//Tid:         alert.Tid,
 			//Aid:         alert.Aid,
 		}
