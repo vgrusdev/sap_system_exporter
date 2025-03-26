@@ -303,3 +303,18 @@ func RemoveDuplicate[T comparable](sliceList []T) []T {
     }
     return list
 }
+
+// make map from the string in format "KEY1=VALUE1;KEY2=VALUE2;...;KEYx=VALUEx;"
+func make_string_map (s string) (map[string]string) {
+               
+	m := make(map[string]string)
+	var s_arr []string
+   
+	s_arr = strings.Split(s, ";")
+	for _, item := range s_arr {
+				   if before, after, found := strings.Cut(item, "="); found {
+								   m[before] = after
+				   }
+	}
+	return m
+}

@@ -20,7 +20,7 @@ func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 	}
 
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
-	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
 
 	return c, nil
 }
@@ -46,6 +46,7 @@ type current_alert  struct {
 	Attribute   string
 	Description string
 	ATime       string
+	Aluniqnum   string
 	//Tid         string
 	//Aid         string
 }
@@ -72,12 +73,16 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			continue
 		}
 		*/
+
+		aid_map := make_string_map(alert.Aid)
+
 		alert_item = current_alert {
 			//State:       state,
 			Object:      alert.Object,
 			Attribute:   alert.Attribute,
 			Description: alert.Description,
 			ATime:       alert.ATime,
+			Alunuqnum:   aid_map[ALUNIQNUM]
 			//Tid:         alert.Tid,
 			//Aid:         alert.Aid,
 		}
@@ -103,7 +108,8 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			alert_item.Object,
 			alert_item.Attribute,
 			alert_item.Description,
-			alert_item.ATime)
+			alert_item.ATime,
+		    alert_item.Aluniqnum)
 			//alert.Tid,
 			//alert.Aid)
 	}
