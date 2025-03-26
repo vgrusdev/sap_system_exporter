@@ -41,7 +41,7 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 type current_alert  struct {
-	//State       float64
+	State       float64
 	Object      string
 	Attribute   string
 	Description string
@@ -77,7 +77,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		aid_map := sapcontrol.Make_string_map(alert.Aid)
 
 		alert_item = current_alert {
-			//State:       state,
+			State:       state,
 			Object:      alert.Object,
 			Attribute:   alert.Attribute,
 			Description: alert.Description,
@@ -100,7 +100,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 
 		ch <- c.MakeGaugeMetric(
 			"Alert",
-			4.0,
+			alert_item.State,
 			currentSapInstance.Name,
 			strconv.Itoa(int(currentSapInstance.Number)),
 			currentSapInstance.SID,
