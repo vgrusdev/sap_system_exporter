@@ -307,7 +307,7 @@ func RemoveDuplicate[T comparable](sliceList []T) []T {
 }
 
 // make map from the string in format "KEY1=VALUE1;KEY2=VALUE2;...;KEYx=VALUEx;"
-func make_string_map (s string) (map[string]string) {
+func Make_string_map (s string) (map[string]string) {
                
 	m := make(map[string]string)
 	var s_arr []string
