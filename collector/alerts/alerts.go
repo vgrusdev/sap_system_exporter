@@ -82,7 +82,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			Attribute:   alert.Attribute,
 			Description: alert.Description,
 			ATime:       alert.ATime,
-			Alunuqnum:   aid_map[ALUNIQNUM]
+			Alunuqnum:   aid_map[ALUNIQNUM],
 			//Tid:         alert.Tid,
 			//Aid:         alert.Aid,
 		}
