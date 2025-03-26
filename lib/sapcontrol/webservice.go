@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"sync"
 
+	"strings"
+
 	//"github.com/hooklift/gowsdl/soap"
 	"github.com/pkg/errors"
 )
