@@ -1,8 +1,8 @@
 package registry
 
 import (
-	"strings"
-	"fmt"
+	//"strings"
+	//"fmt"
 
 	"github.com/vgrusdev/sap_system_exporter/collector/dispatcher"
 	"github.com/vgrusdev/sap_system_exporter/collector/enqueue_server"
