@@ -93,14 +93,12 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", *alert_item.Value, err)
 			continue
 		}
-		labels := append([]string{
-								alert_item.Object, 
-								alert_item.Attribute, 
-								alert_item.Description, 
-								alert_item.ATime, 
-								string(alert_item.Value)
-						}, 
-						commonLabels...)
+		labels := append([]string{	alert_item.Object, 
+									alert_item.Attribute, 
+									alert_item.Description, 
+									alert_item.ATime, 
+									string(alert_item.Value) },
+							commonLabels...)
 
 		ch <- c.MakeGaugeMetric("Alert", state, labels...)
 	}
