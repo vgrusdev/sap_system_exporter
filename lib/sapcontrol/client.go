@@ -5,6 +5,7 @@ import (
 	//"net"
 	//"net/http"
 	"crypto/tls"
+	"strings"
 
 	"github.com/hooklift/gowsdl/soap"
 	//"github.com/spf13/viper"
@@ -21,6 +22,17 @@ func NewSoapClient(myConfig *config.MyConfig) *MyClient {
 	c := &MyClient{}
     config := myConfig.Viper
 
+	opts := []soap.Options{
+		soap.WithBasicAuth(
+			config.GetString("sap-control-user"),
+			config.GetString("sap-control-password"),
+		),
+	}
+	tlsIgnore := config.GetString("tls-skip-verify")
+	if strings.ToUpper(tlsIgnore) == "YES" {
+		opts = append(opts, soap.WithTLS(&tls.Config{InsecureSkipVerify: true}))
+	}
+	/*
 	c.SoapClient = soap.NewClient(
 		config.GetString("sap-control-url"),
 		soap.WithBasicAuth(
@@ -29,6 +41,8 @@ func NewSoapClient(myConfig *config.MyConfig) *MyClient {
 		),
 		soap.WithTLS(&tls.Config{InsecureSkipVerify: true}),
 	)
+	*/
+	c.SoapClient = soap.NewClient(config.GetString("sap-control-url"), opts...)
 	c.Config = myConfig
 	return c
 }
