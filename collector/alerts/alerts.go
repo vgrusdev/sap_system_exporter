@@ -21,8 +21,8 @@ func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
-	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "State"})
-
+	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "State"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Description", "ATime", "State", "instance_name", "instance_number", "SID", "instance_hostname"})
 	return c, nil
 }
 
@@ -42,79 +42,67 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 type current_alert  struct {
-	State       float64
 	Object      string
 	Attribute   string
+	Value		STATECOLOR
 	Description string
 	ATime       string
-	StateColor  string
-	//Aluniqnum   string
-	//Tid         string
-	//Aid         string
 }
 
 func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
+
 	alertList, err := c.webService.GetAlerts()
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
+		return errors.Wrap(err, "SAPControl web service GetAlerts error")
 	}
 
 	currentSapInstance, err := c.webService.GetCurrentInstance()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
+	commonLabels := []string {
+		currentSapInstance.Name,
+		strconv.Itoa(int(currentSapInstance.Number)),
+		currentSapInstance.SID,
+		currentSapInstance.Hostname,
+	}
 
 	var alert_item_list []current_alert
-	var alert_item        current_alert
+	//var alert_item        current_alert
 
 	for _, alert := range alertList.Alerts {
 
-		state, err := sapcontrol.StateColorToFloat(alert.Value)
-		if err != nil {
-			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", *alert, err)
-			continue
-		}
-
-		//aid_map := sapcontrol.Make_string_map(alert.Aid)
-
-		alert_item = current_alert {
-			State:       state,
+		alert_item := current_alert {
 			Object:      alert.Object,
 			Attribute:   alert.Attribute,
+			Value:       alert.Value,
 			Description: alert.Description,
 			ATime:       alert.ATime,
-			StateColor:  string(alert.Value),
-			//Aluniqnum:   aid_map["ALUNIQNUM"],
-			//Tid:         alert.Tid,
-			//Aid:         alert.Aid,
 		}
 		alert_item_list = append(alert_item_list, alert_item)
 	}
 	
 	log.Debugf("Alerts in the list before remove duplicates: %d\n", len(alert_item_list) )
-
-
 	alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
-
 	log.Debugf("Alerts in the list AFTER remove duplicates: %d\n", len(alert_item_list) )
 
 	for _, alert_item := range alert_item_list {
 
-		ch <- c.MakeGaugeMetric(
-			"Alert",
-			alert_item.State,
-			currentSapInstance.Name,
-			strconv.Itoa(int(currentSapInstance.Number)),
-			currentSapInstance.SID,
-			currentSapInstance.Hostname,
-			alert_item.Object,
-			alert_item.Attribute,
-			alert_item.Description,
-			alert_item.ATime,
-			alert_item.StateColor)
-		    //alert_item.Aluniqnum)
-			//alert.Tid,
-			//alert.Aid)
+		state, err := sapcontrol.StateColorToFloat(alert_item.Value)
+		if err != nil {
+			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", *alert_item.Value, err)
+			continue
+		}
+		labels := append([]string{
+								alert_item.Object, 
+								alert_item.Attribute, 
+								alert_item.Description, 
+								alert_item.ATime, 
+								string(alert_item.Value)
+						}, 
+						commonLabels...)
+
+		ch <- c.MakeGaugeMetric("Alert", state, labels...)
 	}
 
 	return nil
