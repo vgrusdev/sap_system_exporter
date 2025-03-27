@@ -44,32 +44,60 @@ func (c *dispatcherCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (c *dispatcherCollector) recordWorkProcessQueueStats(ch chan<- prometheus.Metric) error {
-	queueStatistic, err := c.webService.GetQueueStatistic()
+
+	// VG ++    loop on instances
+	log.Debugln("SAP WorkProcessQueueStats collecting")
+	instanceList, err := c.webService.GetSystemInstanceList()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
-	currentSapInstance, err := c.webService.GetCurrentInstance()
+	log.Debugf("WorkProcessesQueueStats: Instances in the list: %d\n", len(instanceList.Instances) )
+
+	client := c.webService.GetMyClient()
+	myConfig, err := client.Config.Copy()
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
+		return errors.Wrap(err, "SAPControl config Copy error")
 	}
 
-	commonLabels := []string{
-		currentSapInstance.Name,
-		strconv.Itoa(int(currentSapInstance.Number)),
-		currentSapInstance.SID,
-		currentSapInstance.Hostname,
-	}
+	for _, instance := range instanceList.Instances {
 
-	// for each work queue, we record a different line for each stat of that queue, with the type as a common label
-	for _, queue := range queueStatistic.Queues {
-		labels := append([]string{queue.Type}, commonLabels...)
-		ch <- c.MakeGaugeMetric("queue_now", float64(queue.Now), labels...)
-		ch <- c.MakeCounterMetric("queue_high", float64(queue.High), labels...)
-		ch <- c.MakeGaugeMetric("queue_max", float64(queue.Max), labels...)
-		ch <- c.MakeCounterMetric("queue_writes", float64(queue.Writes), labels...)
-		ch <- c.MakeCounterMetric("queue_reads", float64(queue.Reads), labels...)
-	}
+		url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 
+		err := myConfig.SetURL(url)
+		if err != nil {
+			log.Warnf("SAPControl URL error (%s): %s", url, err)
+			continue
+		}
+		myClient := sapcontrol.NewSoapClient(myConfig)
+		myWebService := sapcontrol.NewWebService(myClient)
+
+		currentSapInstance, err := myWebService.GetCurrentInstance()
+		if err != nil {
+			log.Warnf("SAPControl web service error: %s", err)
+			continue
+		}
+		commonLabels := []string{
+			currentSapInstance.Name,
+			strconv.Itoa(int(currentSapInstance.Number)),
+			currentSapInstance.SID,
+			currentSapInstance.Hostname,
+		}
+
+		queueStatistic, err := myWebService.GetQueueStatistic()
+		if err != nil {
+			return errors.Wrap(err, "SAPControl web service error")
+		}
+
+		// for each work queue, we record a different line for each stat of that queue, with the type as a common label
+		for _, queue := range queueStatistic.Queues {
+			labels := append([]string{queue.Type}, commonLabels...)
+			ch <- c.MakeGaugeMetric("queue_now", float64(queue.Now), labels...)
+			ch <- c.MakeCounterMetric("queue_high", float64(queue.High), labels...)
+			ch <- c.MakeGaugeMetric("queue_max", float64(queue.Max), labels...)
+			ch <- c.MakeCounterMetric("queue_writes", float64(queue.Writes), labels...)
+			ch <- c.MakeCounterMetric("queue_reads", float64(queue.Reads), labels...)
+		}
+	}
 	return nil
 }

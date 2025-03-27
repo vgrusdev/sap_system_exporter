@@ -65,80 +65,108 @@ func (c *enqueueServerCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (c *enqueueServerCollector) recordEnqStats(ch chan<- prometheus.Metric) error {
-	enqStatistic, err := c.webService.EnqGetStatistic()
+
+	// VG ++    loop on instances
+	log.Debugln("SAP EnqStats collecting")
+	instanceList, err := c.webService.GetSystemInstanceList()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl web service error")
 	}
-
-	currentSapInstance, err := c.webService.GetCurrentInstance()
+	
+	log.Debugf("EnqStats: Instances in the list: %d\n", len(instanceList.Instances) )
+	
+	client := c.webService.GetMyClient()
+	myConfig, err := client.Config.Copy()
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
+		return errors.Wrap(err, "SAPControl config Copy error")
 	}
+	
+	for _, instance := range instanceList.Instances {
+	
+		url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+	
+		err := myConfig.SetURL(url)
+		if err != nil {
+			log.Warnf("SAPControl URL error (%s): %s", url, err)
+			continue
+		}
+		myClient := sapcontrol.NewSoapClient(myConfig)
+		myWebService := sapcontrol.NewWebService(myClient)
+	
+		enqStatistic, err := myWebService.EnqGetStatistic()
+		if err != nil {
+			return errors.Wrap(err, "SAPControl web service error")
+		}
 
-	labels := []string{
-		currentSapInstance.Name,
-		strconv.Itoa(int(currentSapInstance.Number)),
-		currentSapInstance.SID,
-		currentSapInstance.Hostname,
+		currentSapInstance, err := myWebService.GetCurrentInstance()
+		if err != nil {
+			return errors.Wrap(err, "SAPControl web service error")
+		}
+
+		labels := []string{
+			currentSapInstance.Name,
+			strconv.Itoa(int(currentSapInstance.Number)),
+			currentSapInstance.SID,
+			currentSapInstance.Hostname,
+		}
+
+		ch <- c.MakeGaugeMetric("owner_now", float64(enqStatistic.OwnerNow), labels...)
+		ch <- c.MakeCounterMetric("owner_high", float64(enqStatistic.OwnerHigh), labels...)
+		ch <- c.MakeGaugeMetric("owner_max", float64(enqStatistic.OwnerMax), labels...)
+
+		ownerState, err := sapcontrol.StateColorToFloat(enqStatistic.OwnerState)
+		if err != nil {
+			log.Warnf("Could not record owner_state metric: %s", err)
+		} else {
+			ch <- c.MakeGaugeMetric("owner_state", ownerState, labels...)
+		}
+
+		ch <- c.MakeGaugeMetric("arguments_now", float64(enqStatistic.ArgumentsNow), labels...)
+		ch <- c.MakeCounterMetric("arguments_high", float64(enqStatistic.ArgumentsHigh), labels...)
+		ch <- c.MakeGaugeMetric("arguments_max", float64(enqStatistic.ArgumentsMax), labels...)
+
+		argumentsState, err := sapcontrol.StateColorToFloat(enqStatistic.ArgumentsState)
+		if err != nil {
+			log.Warnf("Could not record arguments_state metric: %s", err)
+		} else {
+			ch <- c.MakeGaugeMetric("arguments_state", argumentsState, labels...)
+		}
+
+		ch <- c.MakeGaugeMetric("locks_now", float64(enqStatistic.LocksNow), labels...)
+		ch <- c.MakeCounterMetric("locks_high", float64(enqStatistic.LocksHigh), labels...)
+		ch <- c.MakeGaugeMetric("locks_max", float64(enqStatistic.LocksMax), labels...)
+
+		locksState, err := sapcontrol.StateColorToFloat(enqStatistic.LocksState)
+		if err != nil {
+			log.Warnf("Could not record locks_state metric: %s", err)
+		} else {
+			ch <- c.MakeGaugeMetric("locks_state", locksState, labels...)
+		}
+
+		ch <- c.MakeCounterMetric("enqueue_requests", float64(enqStatistic.EnqueueRequests), labels...)
+		ch <- c.MakeCounterMetric("enqueue_rejects", float64(enqStatistic.EnqueueRejects), labels...)
+		ch <- c.MakeCounterMetric("enqueue_errors", float64(enqStatistic.EnqueueErrors), labels...)
+
+		ch <- c.MakeCounterMetric("dequeue_requests", float64(enqStatistic.DequeueRequests), labels...)
+		ch <- c.MakeCounterMetric("dequeue_errors", float64(enqStatistic.DequeueErrors), labels...)
+		ch <- c.MakeCounterMetric("dequeue_all_requests", float64(enqStatistic.DequeueAllRequests), labels...)
+
+		ch <- c.MakeCounterMetric("cleanup_requests", float64(enqStatistic.CleanupRequests), labels...)
+		ch <- c.MakeCounterMetric("backup_requests", float64(enqStatistic.BackupRequests), labels...)
+		ch <- c.MakeCounterMetric("reporting_requests", float64(enqStatistic.ReportingRequests), labels...)
+		ch <- c.MakeCounterMetric("compress_requests", float64(enqStatistic.CompressRequests), labels...)
+		ch <- c.MakeCounterMetric("verify_requests", float64(enqStatistic.VerifyRequests), labels...)
+
+		ch <- c.MakeCounterMetric("lock_time", enqStatistic.LockTime, labels...)
+		ch <- c.MakeCounterMetric("lock_wait_time", enqStatistic.LockWaitTime, labels...)
+		ch <- c.MakeCounterMetric("server_time", enqStatistic.ServerTime, labels...)
+
+		replicationState, err := sapcontrol.StateColorToFloat(enqStatistic.ReplicationState)
+		if err != nil {
+			log.Warnf("Could not record replication_state metric: %s", err)
+		} else {
+			ch <- c.MakeGaugeMetric("replication_state", replicationState, labels...)
+		}
 	}
-
-	ch <- c.MakeGaugeMetric("owner_now", float64(enqStatistic.OwnerNow), labels...)
-	ch <- c.MakeCounterMetric("owner_high", float64(enqStatistic.OwnerHigh), labels...)
-	ch <- c.MakeGaugeMetric("owner_max", float64(enqStatistic.OwnerMax), labels...)
-
-	ownerState, err := sapcontrol.StateColorToFloat(enqStatistic.OwnerState)
-	if err != nil {
-		log.Warnf("Could not record owner_state metric: %s", err)
-	} else {
-		ch <- c.MakeGaugeMetric("owner_state", ownerState, labels...)
-	}
-
-	ch <- c.MakeGaugeMetric("arguments_now", float64(enqStatistic.ArgumentsNow), labels...)
-	ch <- c.MakeCounterMetric("arguments_high", float64(enqStatistic.ArgumentsHigh), labels...)
-	ch <- c.MakeGaugeMetric("arguments_max", float64(enqStatistic.ArgumentsMax), labels...)
-
-	argumentsState, err := sapcontrol.StateColorToFloat(enqStatistic.ArgumentsState)
-	if err != nil {
-		log.Warnf("Could not record arguments_state metric: %s", err)
-	} else {
-		ch <- c.MakeGaugeMetric("arguments_state", argumentsState, labels...)
-	}
-
-	ch <- c.MakeGaugeMetric("locks_now", float64(enqStatistic.LocksNow), labels...)
-	ch <- c.MakeCounterMetric("locks_high", float64(enqStatistic.LocksHigh), labels...)
-	ch <- c.MakeGaugeMetric("locks_max", float64(enqStatistic.LocksMax), labels...)
-
-	locksState, err := sapcontrol.StateColorToFloat(enqStatistic.LocksState)
-	if err != nil {
-		log.Warnf("Could not record locks_state metric: %s", err)
-	} else {
-		ch <- c.MakeGaugeMetric("locks_state", locksState, labels...)
-	}
-
-	ch <- c.MakeCounterMetric("enqueue_requests", float64(enqStatistic.EnqueueRequests), labels...)
-	ch <- c.MakeCounterMetric("enqueue_rejects", float64(enqStatistic.EnqueueRejects), labels...)
-	ch <- c.MakeCounterMetric("enqueue_errors", float64(enqStatistic.EnqueueErrors), labels...)
-
-	ch <- c.MakeCounterMetric("dequeue_requests", float64(enqStatistic.DequeueRequests), labels...)
-	ch <- c.MakeCounterMetric("dequeue_errors", float64(enqStatistic.DequeueErrors), labels...)
-	ch <- c.MakeCounterMetric("dequeue_all_requests", float64(enqStatistic.DequeueAllRequests), labels...)
-
-	ch <- c.MakeCounterMetric("cleanup_requests", float64(enqStatistic.CleanupRequests), labels...)
-	ch <- c.MakeCounterMetric("backup_requests", float64(enqStatistic.BackupRequests), labels...)
-	ch <- c.MakeCounterMetric("reporting_requests", float64(enqStatistic.ReportingRequests), labels...)
-	ch <- c.MakeCounterMetric("compress_requests", float64(enqStatistic.CompressRequests), labels...)
-	ch <- c.MakeCounterMetric("verify_requests", float64(enqStatistic.VerifyRequests), labels...)
-
-	ch <- c.MakeCounterMetric("lock_time", enqStatistic.LockTime, labels...)
-	ch <- c.MakeCounterMetric("lock_wait_time", enqStatistic.LockWaitTime, labels...)
-	ch <- c.MakeCounterMetric("server_time", enqStatistic.ServerTime, labels...)
-
-	replicationState, err := sapcontrol.StateColorToFloat(enqStatistic.ReplicationState)
-	if err != nil {
-		log.Warnf("Could not record replication_state metric: %s", err)
-	} else {
-		ch <- c.MakeGaugeMetric("replication_state", replicationState, labels...)
-	}
-
 	return nil
 }
