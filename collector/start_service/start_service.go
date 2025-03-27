@@ -140,11 +140,11 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 	}
 
 	for _, instance := range instanceList.Instances {
-
+		url := ""
 		if useHTTPS == true {
-			url := fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
+			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
 		} else {
-			url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 		}
 		log.Debugf(" Instances: use url: %s", url)
 		err := myConfig.SetURL(url)
