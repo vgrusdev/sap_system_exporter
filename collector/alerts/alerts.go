@@ -44,7 +44,7 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 type current_alert  struct {
 	Object      string
 	Attribute   string
-	Value		STATECOLOR
+	Value		sapcontrol.STATECOLOR
 	Description string
 	ATime       string
 }
