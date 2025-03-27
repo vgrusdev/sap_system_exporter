@@ -2,6 +2,7 @@ package alerts
 
 import (
 	"strconv"
+	"fmt"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -90,7 +91,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			currentSapInstance.Hostname,
 		}
 
-		alertList, err := c.myWebService.GetAlerts()
+		alertList, err := myWebService.GetAlerts()
 		if err != nil {
 			log.Warnf("SAPControl web service GetAlerts error: %s", err)
 			continue
