@@ -10,6 +10,8 @@ import (
 	"github.com/hooklift/gowsdl/soap"
 	//"github.com/spf13/viper"
 	"github.com/vgrusdev/sap_system_exporter/internal/config"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type MyClient struct {
@@ -42,6 +44,7 @@ func NewSoapClient(myConfig *config.MyConfig) *MyClient {
 		soap.WithTLS(&tls.Config{InsecureSkipVerify: true}),
 	)
 	*/
+	log.Debugf("Creating new soap client with URL: %s", config.GetString("sap-control-url"))
 	c.SoapClient = soap.NewClient(config.GetString("sap-control-url"), opts...)
 	c.Config = myConfig
 	return c

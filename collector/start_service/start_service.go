@@ -140,7 +140,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 		} else {
 			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 		}
-		log.Debugf(" Instances: use url: %s", url)
+		//log.Debugf(" Instances: use url: %s", url)
 		err := myConfig.SetURL(url)
 		if err != nil {
 			log.Warnf("SAPControl URL error (%s): %s", url, err)
