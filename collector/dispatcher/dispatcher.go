@@ -57,6 +57,7 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ch chan<- prometheus.M
 	log.Debugf("WorkProcessesQueueStats: Instances in the list: %d", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
+	useHTTPS := client.Config.UseHTTPS()
 	myConfig, err := client.Config.Copy()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl config Copy error")
@@ -64,7 +65,12 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ch chan<- prometheus.M
 
 	for _, instance := range instanceList.Instances {
 
-		url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+		url := ""
+		if useHTTPS == true {
+			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
+		} else {
+			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+		}
 
 		err := myConfig.SetURL(url)
 		if err != nil {

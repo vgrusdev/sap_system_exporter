@@ -110,3 +110,17 @@ func (c *MyConfig) SetURL(url string) error {
 	}
 	return nil
 }
+
+func (c *MyConfig) UseHTTPS() bool {
+	config := c.Viper
+	sapControlUrl := config.GetString("sap-control-url")
+	u, err := url.ParseRequestURI(sapControlUrl)
+	if err != nil {
+		log.Warnf("could not parse uri (%s): %s", sapControlUrl, err)
+		return false
+	}
+	if u.Scheme == "https" {
+		return true
+	}
+	return false
+}
