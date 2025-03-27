@@ -3,6 +3,7 @@ package enqueue_server
 import (
 	"strconv"
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -93,7 +94,24 @@ func (c *enqueueServerCollector) recordEnqStats(ch chan<- prometheus.Metric) err
 		}
 		myClient := sapcontrol.NewSoapClient(myConfig)
 		myWebService := sapcontrol.NewWebService(myClient)
-	
+
+		enqueueFound := false
+		processList, err := myWebService.GetProcessList()
+		if err != nil {
+			return errors.Wrap(err, "SAPControl web service error")
+		}
+
+		for _, process := range processList.Processes {
+			if strings.Contains(process.Name, "msg_server") {
+				enqueueFound = true
+				break
+			}
+		}
+		// if we found msg_server on process name we collect the Enqueue Server stats
+		if enqueueFound != true {
+			continue
+		}
+
 		enqStatistic, err := myWebService.EnqGetStatistic()
 		if err != nil {
 			return errors.Wrap(err, "SAPControl web service error")

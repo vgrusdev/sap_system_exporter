@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"strconv"
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -72,6 +73,23 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ch chan<- prometheus.M
 		}
 		myClient := sapcontrol.NewSoapClient(myConfig)
 		myWebService := sapcontrol.NewWebService(myClient)
+
+		dispatcherFound := false
+		processList, err := myWebService.GetProcessList()
+		if err != nil {
+			return errors.Wrap(err, "SAPControl web service error")
+		}
+
+		for _, process := range processList.Processes {
+			if strings.Contains(process.Name, "disp+work") {
+				dispatcherFound = true
+				break
+			}
+		}
+		// if we found msg_server on process name we Collect the Dispatcher Stats
+		if dispatcherFound != true {
+			continue
+		}
 
 		currentSapInstance, err := myWebService.GetCurrentInstance()
 		if err != nil {
