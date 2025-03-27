@@ -44,7 +44,7 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 type current_alert  struct {
 	Object      string
 	Attribute   string
-	Value		sapcontrol.STATECOLOR
+	Value		STATECOLOR
 	Description string
 	ATime       string
 }
@@ -90,7 +90,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 
 		state, err := sapcontrol.StateColorToFloat(alert_item.Value)
 		if err != nil {
-			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", *alert_item.Value, err)
+			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", *alert_item, err)
 			continue
 		}
 		labels := append([]string{	alert_item.Object, 
