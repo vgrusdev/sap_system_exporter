@@ -60,7 +60,8 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 // returns an error in case the sap-control-url config value cannot be parsed as URL
 func validateSapControlUrl(config *viper.Viper) error {
 	sapControlUrl := config.GetString("sap-control-url")
-	if u, err := url.ParseRequestURI(sapControlUrl); err != nil {
+	u, err := url.ParseRequestURI(sapControlUrl)
+	if err != nil {
 		return errors.Wrap(err, "could not parse uri: " + sapControlUrl)
 	}
 
