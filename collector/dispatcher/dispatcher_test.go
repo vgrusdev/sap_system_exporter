@@ -3,7 +3,6 @@ package dispatcher
 import (
 	"strings"
 	"testing"
-	"fmt"
 
 	"github.com/golang/mock/gomock"
 	"github.com/prometheus/client_golang/prometheus/testutil"
