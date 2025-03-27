@@ -34,6 +34,7 @@ func init() {
 	flag.String("address", "0.0.0.0", "The address to listen on for HTTP requests")
 	flag.String("log-level", "info", "The minimum logging level; levels are, in ascending order: debug, info, warn, error")
 	flag.String("sap-control-url", "localhost:50013", "The URL of the SAPControl SOAP web service, e.g. $HOST:$PORT. Recommendation to connect to Central Instance.")
+	flag.String("host-domain", "", "Optional Domain name to make FQDN together with hostname, Recommended in case of SAP hostname is a sigle-word hostname.")
 	flag.StringP("config", "c", "", "The path to a custom configuration file. NOTE: it must be in yaml format.")
 	flag.CommandLine.SortFlags = false
 

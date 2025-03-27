@@ -3,6 +3,7 @@ package config
 import (
 	"net/url"
 	"regexp"
+	"strings"
 
 	//"log/slog"
 	//"context"
@@ -59,19 +60,24 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 // returns an error in case the sap-control-url config value cannot be parsed as URL
 func validateSapControlUrl(config *viper.Viper) error {
 	sapControlUrl := config.GetString("sap-control-url")
-	if _, err := url.ParseRequestURI(sapControlUrl); err != nil {
-		return errors.Wrap(err, "could not parse uri")
-	}
-	/* VG
 	if u, err := url.ParseRequestURI(sapControlUrl); err != nil {
-		return errors.Wrap(err, "could not parse uri")
+		return errors.Wrap(err, "could not parse uri: " + sapControlUrl)
 	}
-	port := u.Port()
-	if len(port) == 0 {
-		return errors.Wrap(err, "could not parse uri, port missing")
+
+	if d := config.GetString("host-domain"); d != "" {
+		// Add domain to hostname if needed
+		// Simple checking "." presents in the hostname 
+    	//  Using Contains() function 
+    	if !strings.Contains(u.Hostname(), ".") {
+			u.Host = u.Hostname() + "." + d + ":" + u.Port()
+			sapControlUrl = u.String()
+			// double checking url validity after adding domain
+			if _, err := url.ParseRequestURI(sapControlUrl); err != nil {
+				return errors.Wrap(err, "could not parse uri after adding domain: " + sapControlUrl)
+			}
+			config.Set("sap-control-url", sapControlUrl)
+		}
 	}
-	config.Set("sap-control-url-port", port)
-	*/
 	return nil
 }
 
@@ -99,7 +105,7 @@ func (c *MyConfig) SetURL(url string) error {
 
 	err := validateSapControlUrl(config)
 	if err != nil {
-		return errors.Wrap(err, "invalid config value for sap-control-url")
+		return errors.Wrap(err, "invalid SetURL value for sap-control-url")
 	}
 	return nil
 }
