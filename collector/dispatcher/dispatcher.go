@@ -54,7 +54,7 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ch chan<- prometheus.M
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
-	log.Debugf("WorkProcessesQueueStats: Instances in the list: %d\n", len(instanceList.Instances) )
+	log.Debugf("WorkProcessesQueueStats: Instances in the list: %d", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
 	myConfig, err := client.Config.Copy()

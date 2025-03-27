@@ -56,7 +56,7 @@ func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) err
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
-	log.Debugf("Processes: Instances in the list: %d\n", len(instanceList.Instances) )
+	log.Debugf("Processes: Instances in the list: %d", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
 	myConfig, err := client.Config.Copy()
@@ -118,7 +118,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
-	log.Debugf("Instances: Instances in the list: %d\n", len(instanceList.Instances) )
+	log.Debugf("Instances: Instances in the list: %d", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
 	myConfig, err := client.Config.Copy()

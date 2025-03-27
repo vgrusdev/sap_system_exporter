@@ -59,7 +59,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		return errors.Wrap(err, "SAPControl web service Alerts error")
 	}
 
-	log.Debugf("Alerts: Instances in the list: %d\n", len(instanceList.Instances) )
+	log.Debugf("Alerts: Instances in the list: %d", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
 	myConfig, err := client.Config.Copy()
@@ -111,9 +111,9 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			alert_item_list = append(alert_item_list, alert_item)
 		}
 	
-		log.Debugf("Alerts in the list BEFORE remove duplicates: %d\n", len(alert_item_list) )
+		log.Debugf("Alerts in the list BEFORE remove duplicates: %d", len(alert_item_list) )
 		alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
-		log.Debugf("Alerts in the list AFTER remove duplicates: %d\n", len(alert_item_list) )
+		log.Debugf("Alerts in the list AFTER remove duplicates: %d", len(alert_item_list) )
 
 		for _, alert_item := range alert_item_list {
 
