@@ -21,9 +21,11 @@ func NewCollector(webService sapcontrol.WebService) (*startServiceCollector, err
 		webService,
 	}
 
-	c.SetDescriptor("processes", "The processes started by the SAP Start Service", []string{"name", "pid", "status", "instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("processes", "The processes started by the SAP Start Service", 
+					[]string{"name", "pid", "status", "instance_name", "instance_number", "SID", "instance_hostname"})
 	//c.SetDescriptor("instances", "The SAP instances in the context of the whole SAP system", []string{"features", "start_priority", "instance_name", "instance_number", "SID", "instance_hostname"})
-	c.SetDescriptor("instances", "The SAP instances in the context of the whole SAP system", []string{"features", "start_priority", "instance_name", "instance_number", "SID", "instance_hostname", "dispstatus"})
+	c.SetDescriptor("instances", "The SAP instances in the context of the whole SAP system", 
+					[]string{"features", "start_priority", "instance_name", "instance_number", "SID", "instance_hostname", "dispstatus"})
 	
 	return c, nil
 }
@@ -54,7 +56,7 @@ func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) err
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
-	log.Debugf(" Instances in the list: %d\n", len(instanceList.Instances) )
+	log.Debugf("Processes: Instances in the list: %d\n", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
 	myConfig, err := client.Config.Copy()
@@ -116,7 +118,7 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 		return errors.Wrap(err, "SAPControl web service error")
 	}
 
-	log.Debugf(" Instances in the list: %d\n", len(instanceList.Instances) )
+	log.Debugf("Instances: Instances in the list: %d\n", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
 	myConfig, err := client.Config.Copy()

@@ -51,57 +51,85 @@ type current_alert  struct {
 
 func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 
-	alertList, err := c.webService.GetAlerts()
+	// VG ++    loop on instances
+	log.Debugln("SAP Alerts collecting")
+	instanceList, err := c.webService.GetSystemInstanceList()
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service GetAlerts error")
+		return errors.Wrap(err, "SAPControl web service Alerts error")
 	}
 
-	currentSapInstance, err := c.webService.GetCurrentInstance()
+	log.Debugf("Alerts: Instances in the list: %d\n", len(instanceList.Instances) )
+
+	client := c.webService.GetMyClient()
+	myConfig, err := client.Config.Copy()
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
-	}
-	commonLabels := []string {
-		currentSapInstance.Name,
-		strconv.Itoa(int(currentSapInstance.Number)),
-		currentSapInstance.SID,
-		currentSapInstance.Hostname,
+		return errors.Wrap(err, "SAPControl config Copy error")
 	}
 
-	var alert_item_list []current_alert
-	//var alert_item        current_alert
+	for _, instance := range instanceList.Instances {
 
-	for _, alert := range alertList.Alerts {
+		url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
 
-		alert_item := current_alert {
-			Object:      alert.Object,
-			Attribute:   alert.Attribute,
-			Value:       alert.Value,
-			Description: alert.Description,
-			ATime:       alert.ATime,
-		}
-		alert_item_list = append(alert_item_list, alert_item)
-	}
-	
-	log.Debugf("Alerts in the list before remove duplicates: %d\n", len(alert_item_list) )
-	alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
-	log.Debugf("Alerts in the list AFTER remove duplicates: %d\n", len(alert_item_list) )
-
-	for _, alert_item := range alert_item_list {
-
-		state, err := sapcontrol.StateColorToFloat(alert_item.Value)
+		err := myConfig.SetURL(url)
 		if err != nil {
-			log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", alert_item.Value, err)
+			log.Warnf("SAPControl URL error (%s): %s", url, err)
 			continue
 		}
-		labels := append([]string{	alert_item.Object, 
-									alert_item.Attribute, 
-									alert_item.Description, 
-									alert_item.ATime, 
-									string(alert_item.Value) },
-							commonLabels...)
+		myClient := sapcontrol.NewSoapClient(myConfig)
+		myWebService := sapcontrol.NewWebService(myClient)
 
-		ch <- c.MakeGaugeMetric("Alert", state, labels...)
+		currentSapInstance, err := myWebService.GetCurrentInstance()
+		if err != nil {
+			log.Warnf("SAPControl web service error: %s", err)
+			continue
+		}
+		commonLabels := []string {
+			currentSapInstance.Name,
+			strconv.Itoa(int(currentSapInstance.Number)),
+			currentSapInstance.SID,
+			currentSapInstance.Hostname,
+		}
+
+		alertList, err := c.myWebService.GetAlerts()
+		if err != nil {
+			log.Warnf("SAPControl web service GetAlerts error: %s", err)
+			continue
+		}
+
+		alert_item_list := []current_alert{}
+
+		for _, alert := range alertList.Alerts {
+
+			alert_item := current_alert {
+				Object:      alert.Object,
+				Attribute:   alert.Attribute,
+				Value:       alert.Value,
+				Description: alert.Description,
+				ATime:       alert.ATime,
+			}
+			alert_item_list = append(alert_item_list, alert_item)
+		}
+	
+		log.Debugf("Alerts in the list BEFORE remove duplicates: %d\n", len(alert_item_list) )
+		alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
+		log.Debugf("Alerts in the list AFTER remove duplicates: %d\n", len(alert_item_list) )
+
+		for _, alert_item := range alert_item_list {
+
+			state, err := sapcontrol.StateColorToFloat(alert_item.Value)
+			if err != nil {
+				log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", alert_item.Value, err)
+				continue
+			}
+			labels := append([]string{	alert_item.Object, 
+										alert_item.Attribute, 
+										alert_item.Description, 
+										alert_item.ATime, 
+										string(alert_item.Value) },
+								commonLabels...)
+
+			ch <- c.MakeGaugeMetric("Alert", state, labels...)
+		}
 	}
-
 	return nil
 }
