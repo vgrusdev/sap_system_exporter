@@ -22,7 +22,7 @@ func NewSoapClient(myConfig *config.MyConfig) *MyClient {
 	c := &MyClient{}
     config := myConfig.Viper
 
-	opts := []soap.Options{
+	opts := []soap.Option{
 		soap.WithBasicAuth(
 			config.GetString("sap-control-user"),
 			config.GetString("sap-control-password"),
