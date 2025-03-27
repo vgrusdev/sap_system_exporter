@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	log "github.com/sirupsen/logrus"
 )
 
 type MyConfig struct {
