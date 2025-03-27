@@ -4,6 +4,7 @@ import (
 	//"context"
 	//"net"
 	//"net/http"
+	"crypto/tls"
 
 	"github.com/hooklift/gowsdl/soap"
 	//"github.com/spf13/viper"
@@ -26,6 +27,7 @@ func NewSoapClient(myConfig *config.MyConfig) *MyClient {
 			config.GetString("sap-control-user"),
 			config.GetString("sap-control-password"),
 		),
+		soap.WithTLS(&tls.Config{InsecureSkipVerify: true}),
 	)
 	c.Config = myConfig
 	return c
