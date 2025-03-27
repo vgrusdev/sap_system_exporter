@@ -121,6 +121,18 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 	log.Debugf("Instances: Instances in the list: %d", len(instanceList.Instances) )
 
 	client := c.webService.GetMyClient()
+	config := client.Config.Viper
+	sapControlUrl := config.GetString("sap-control-url")
+
+	u, err := url.ParseRequestURI(sapControlUrl)
+	if err != nil {
+		return errors.Wrap(err, "could not parse uri: " + sapControlUrl)
+	}
+	useHTTPS := false
+	if u.Scheme == "https" {
+		useHTTPS = true
+	} 
+
 	myConfig, err := client.Config.Copy()
 	if err != nil {
 		return errors.Wrap(err, "SAPControl config Copy error")
@@ -128,8 +140,12 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 
 	for _, instance := range instanceList.Instances {
 
-		url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
-
+		if useHTTPS == true {
+			url := fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
+		} else {
+			url := fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+		}
+		log.Debugf(" Instances: use url: %s", url)
 		err := myConfig.SetURL(url)
 		if err != nil {
 			log.Warnf("SAPControl URL error (%s): %s", url, err)
