@@ -110,7 +110,7 @@ func (c *startServiceCollector) recordProcesses(ch chan<- prometheus.Metric) err
 				strconv.Itoa(int(currentSapInstance.Number)),
 				currentSapInstance.SID,
 				currentSapInstance.Hostname,
-				string(process.Dispdtatus))
+				string(process.Dispstatus))
 		}
 	}
 
