@@ -197,7 +197,7 @@ func (c *startServiceCollector) recordProcessesPerInstance(ch chan<- prometheus.
 
 	log.Debugf("Processes: Instances in the list: %d", len(instanceList.Instances) )
 
-	processes := make(map[sapconttrol.STATECOLOR]int)
+	processes := make(map[sapcontrol.STATECOLOR]int)
 	processes[sapcontrol.STATECOLOR_GRAY]   = 0
 	processes[sapcontrol.STATECOLOR_GREEN]  = 0
 	processes[sapcontrol.STATECOLOR_YELLOW] = 0
@@ -251,10 +251,10 @@ func (c *startServiceCollector) recordProcessesPerInstance(ch chan<- prometheus.
 			}
 		}
 
-		ch <- c.MakeGaugeMetric("processesperinstance_gray", processes[sapcontrol.STATECOLOR_GRAY], commonLabels...)
-		ch <- c.MakeGaugeMetric("processesperinstance_green", processes[sapcontrol.STATECOLOR_GREEN], commonLabels...)
-		ch <- c.MakeGaugeMetric("processesperinstance_yellow", processes[sapcontrol.STATECOLOR_YELLOW], commonLabels...)
-		ch <- c.MakeGaugeMetric("processesperinstance_red", processes[sapcontrol.STATECOLOR_RED], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_gray", float64(processes[sapcontrol.STATECOLOR_GRAY]), commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_green", float64(processes[sapcontrol.STATECOLOR_GREEN]), commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_yellow", float64(processes[sapcontrol.STATECOLOR_YELLOW]), commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_red", float64(processes[sapcontrol.STATECOLOR_RED]), commonLabels...)
 	}
 
 	return nil
