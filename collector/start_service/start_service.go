@@ -197,11 +197,11 @@ func (c *startServiceCollector) recordProcessesPerInstance(ch chan<- prometheus.
 
 	log.Debugf("Processes: Instances in the list: %d", len(instanceList.Instances) )
 
-	processes := make(map[STATECOLOR]int)
-	processes[STATECOLOR_GRAY]   = 0
-	processes[STATECOLOR_GREEN]  = 0
-	processes[STATECOLOR_YELLOW] = 0
-	processes[STATECOLOR_RED]    = 0
+	processes := make(map[sapconttrol.STATECOLOR]int)
+	processes[sapcontrol.STATECOLOR_GRAY]   = 0
+	processes[sapcontrol.STATECOLOR_GREEN]  = 0
+	processes[sapcontrol.STATECOLOR_YELLOW] = 0
+	processes[sapcontrol.STATECOLOR_RED]    = 0
 
 	client := c.webService.GetMyClient()
 	useHTTPS := client.Config.UseHTTPS()
@@ -251,10 +251,10 @@ func (c *startServiceCollector) recordProcessesPerInstance(ch chan<- prometheus.
 			}
 		}
 
-		ch <- c.MakeGaugeMetric("processesperinstance_gray", processes[STATECOLOR_GRAY], commonLabels...)
-		ch <- c.MakeGaugeMetric("processesperinstance_green", processes[STATECOLOR_GREEN], commonLabels...)
-		ch <- c.MakeGaugeMetric("processesperinstance_yellow", processes[STATECOLOR_YELLOW], commonLabels...)
-		ch <- c.MakeGaugeMetric("processesperinstance_red", processes[STATECOLOR_RED], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_gray", processes[sapcontrol.STATECOLOR_GRAY], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_green", processes[sapcontrol.STATECOLOR_GREEN], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_yellow", processes[sapcontrol.STATECOLOR_YELLOW], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_red", processes[sapcontrol.STATECOLOR_RED], commonLabels...)
 	}
 
 	return nil
