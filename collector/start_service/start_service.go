@@ -28,6 +28,11 @@ func NewCollector(webService sapcontrol.WebService) (*startServiceCollector, err
 	//c.SetDescriptor("instances", "The SAP instances in the context of the whole SAP system", []string{"features", "start_priority", "instance_name", "instance_number", "SID", "instance_hostname"})
 	c.SetDescriptor("instances", "The SAP instances in the context of the whole SAP system", 
 					[]string{"features", "start_priority", "instance_name", "instance_number", "SID", "instance_hostname", "dispstatus"})
+
+	c.SetDescriptor("processesperinstance_gray", "Processes in state GRAY", []string{"instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("processesperinstance_green", "Processes in state GREEN", []string{"instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("processesperinstance_yellow", "Processes in state YELLOW", []string{"instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("processesperinstance_red", "Processes in state RED", []string{"instance_name", "instance_number", "SID", "instance_hostname"})
 	
 	return c, nil
 }
@@ -43,6 +48,7 @@ func (c *startServiceCollector) Collect(ch chan<- prometheus.Metric) {
 	errs := collector.RecordConcurrently([]func(ch chan<- prometheus.Metric) error{
 		c.recordProcesses,
 		c.recordInstances,
+		c.recordProcessesPerInstance,
 	}, ch)
 
 	for _, err := range errs {
@@ -178,5 +184,78 @@ func (c *startServiceCollector) recordInstances(ch chan<- prometheus.Metric) err
 			currentSapInstance.Hostname,
 			string(instance.Dispstatus))
 	}
+	return nil
+}
+
+func (c *startServiceCollector) recordProcessesPerInstance(ch chan<- prometheus.Metric) error {
+	// VG ++    loop on instances
+	log.Debugln("SAP Processes collecting")
+	instanceList, err := c.webService.GetSystemInstanceList()
+	if err != nil {
+		return errors.Wrap(err, "SAPControl web service error")
+	}
+
+	log.Debugf("Processes: Instances in the list: %d", len(instanceList.Instances) )
+
+	processes := make(map[STATECOLOR]int)
+	processes[STATECOLOR_GRAY]   = 0
+	processes[STATECOLOR_GREEN]  = 0
+	processes[STATECOLOR_YELLOW] = 0
+	processes[STATECOLOR_RED]    = 0
+
+	client := c.webService.GetMyClient()
+	useHTTPS := client.Config.UseHTTPS()
+	myConfig, err := client.Config.Copy()
+	if err != nil {
+		return errors.Wrap(err, "SAPControl config Copy error")
+	}
+
+	for _, instance := range instanceList.Instances {
+
+		url := ""
+		if useHTTPS == true {
+			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
+		} else {
+			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+		}
+		err := myConfig.SetURL(url)
+		if err != nil {
+			log.Warnf("SAPControl URL error (%s): %s", url, err)
+			continue
+		}
+		myClient := sapcontrol.NewSoapClient(myConfig)
+		myWebService := sapcontrol.NewWebService(myClient)
+
+		currentSapInstance, err := myWebService.GetCurrentInstance()
+		if err != nil {
+			log.Warnf("SAPControl web service error: %s", err)
+			continue
+		}
+		commonLabels := []string {
+			currentSapInstance.Name,
+			strconv.Itoa(int(currentSapInstance.Number)),
+			currentSapInstance.SID,
+			currentSapInstance.Hostname,
+		}
+
+		processList, err := myWebService.GetProcessList()
+		if err != nil {
+			log.Warnf("SAPControl web service error: %s", err)
+			continue
+		}
+
+		for _, process := range processList.Processes {
+
+			if _, ok := processes[process.Dispstatus]; ok {
+				processes[process.Dispstatus] += 1
+			}
+		}
+
+		ch <- c.MakeGaugeMetric("processesperinstance_gray", processes[STATECOLOR_GRAY], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_green", processes[STATECOLOR_GREEN], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_yellow", processes[STATECOLOR_YELLOW], commonLabels...)
+		ch <- c.MakeGaugeMetric("processesperinstance_red", processes[STATECOLOR_RED], commonLabels...)
+	}
+
 	return nil
 }
