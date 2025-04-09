@@ -1,6 +1,7 @@
 package sapcontrol
 
 import (
+	"time"
 	//"context"
 	//"net"
 	//"net/http"
@@ -23,7 +24,7 @@ func NewLokiClient( myConfig *config.MyConfig ) (promtail.Client) {
 	url := config.GetString("loki-url")
 	if url == "" {
 		log.Infoln("loki-url option is empty, will not use LOKI to push Alerts")
-		return nil, nil
+		return nil
 	}
 	bw := config.GetInt("loki-batch-wait")
 	if bw <= 0 { bw = 100 }

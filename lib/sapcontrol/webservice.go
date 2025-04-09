@@ -37,7 +37,7 @@ type WebService interface {
 
 	GetMyClient() (*MyClient)
 	SetLokiClient( promtail.Client)
-	GetLokiClient() (promtain.Client)
+	GetLokiClient() (promtail.Client)
 }
 
 type STATECOLOR string
