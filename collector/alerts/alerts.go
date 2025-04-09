@@ -179,8 +179,8 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 				}
 				message := string(labelSet["Description"])
 				aTime   := string(labelSet["ATime"])
-				loc, _ := timeLocation
-				t, err := time.ParseInLocation(timeFormat, aTime, loc)
+
+				t, err := time.ParseInLocation(timeFormat, aTime, timeLocation)
 				if err != nil {
 					fmt.Printf("Warning: %s\n", err)
 					t = time.Now()
