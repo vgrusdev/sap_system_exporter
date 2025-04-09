@@ -67,8 +67,10 @@ func run() {
 	client := sapcontrol.NewSoapClient(config)
 	loki_client := sapcontrol.NewLokiClient(config)
 
-	defer loki_client.Shutdown()
-
+	if loki_client != nil {
+		defer loki_client.Shutdown()
+	}
+	
 	webService := sapcontrol.NewWebService(client)
 	webService.SetLokiClient(loki_client)
 
