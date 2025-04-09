@@ -83,7 +83,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 	
 	const timeFormat = "2006 01 02 15:04:05"
 	var labelNames []string
-	vat timeLocation *time.Location
+	var timeLocation *time.Location
 
 	loki_client := c.webService.GetLokiClient()
 
