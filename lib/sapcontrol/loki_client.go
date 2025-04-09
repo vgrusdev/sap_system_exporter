@@ -41,9 +41,9 @@ func NewLokiClient( myConfig *config.MyConfig ) (promtail.Client) {
 	cfg := promtail.ClientConfig {
 		Name:                   config.GetString("loki-name"),
 		PushURL:                url,
-		BatchWait:              bw * time.Millisecond,
+		BatchWait:              time.Duration(bw) * time.Millisecond,
 		BatchEntriesNumber:     bn,
-		Timeout:                timeout * time.Millisecond,
+		Timeout:                time.Duration(timeout) * time.Millisecond,
 		Location:               loc,
 	}
 
