@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"fmt"
 	"time"
+	"strings"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -93,7 +94,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		
 		log.Debugf("promDescriptorString = %s", promDescString)
 
-		_, after, _ := strings.Cut(promDescriptorString, "variableLabels: {")
+		_, after, _ := strings.Cut(promDescString, "variableLabels: {")
 		after = strings.TrimSuffix(after, "}}")
 		labelNames = strings.Split(after, ",")
 		log.Debugln(labelNames)
