@@ -8,6 +8,7 @@ import (
 
 	//"github.com/hooklift/gowsdl/soap"
 	"github.com/pkg/errors"
+	"github.com/vgrusdev/promtail-client/promtail"
 )
 
 //go:generate mockgen -destination ../../test/mock_sapcontrol/webservice.go github.com/vgrusdev/sap_system_exporter/lib/sapcontrol WebService
@@ -35,6 +36,8 @@ type WebService interface {
 	GetAlerts() (*GetAlertsResponse, error)
 
 	GetMyClient() (*MyClient)
+	SetLokiClient( promtail.Client)
+	GetLokiClient() (promtain.Client)
 }
 
 type STATECOLOR string
@@ -183,6 +186,7 @@ type webService struct {
 	Client             *MyClient
 	once               *sync.Once
 	currentSapInstance *CurrentSapInstance
+	LokiClient         promtail.Client
 }
 
 // constructor of a WebService interface
@@ -190,13 +194,19 @@ func NewWebService(myClient *MyClient) WebService {
 	return &webService{
 		Client: myClient,
 		once:   &sync.Once{},
+		LokiClient: nil,
 	}
 }
 
 func (s *webService) GetMyClient() (*MyClient) {
 	return s.Client
 }
-
+func (s *webService) SetLokiClient(pClient promtail.Client) {
+	s.LokiClient = pClient
+}
+func (s *webService) GetLokiClient() (promtail.Client) {
+	return s.LokiClient
+}
 
 // implements WebService.GetInstanceProperties()
 func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, error) {

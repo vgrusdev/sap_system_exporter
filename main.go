@@ -65,7 +65,10 @@ func run() {
 	}
 
 	client := sapcontrol.NewSoapClient(config)
+	loki_client := sapcontrol.NewLokiClient(config)
+
 	webService := sapcontrol.NewWebService(client)
+	webService.SetLokiClient(loki_client)
 
 	globalConfig := config.Viper
 	

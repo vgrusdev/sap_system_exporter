@@ -26,4 +26,25 @@ net-domain: ""
 # It is strongly suggested to use the TLS endpoint when using this authentication scheme.
 sap-control-user: ""
 sap-control-password: ""
-
+#
+# Loki section.
+# sap-alerts will be written to the LOKI server in case of loki-url is not empty string.
+#
+# loki-url - full url-path to push LOKI stream, e.g. //localhost:3100/loki/api/v1/push
+loki-url: ""
+#
+# loki-name - "name" label will be added to all other labers, so LOKI will recognise it as servce_name
+# loki-name: ""
+#
+# loki-batch-wait - Max wait time (Milliseconds) before bunch of messages will be sent to LOKI
+loki-batch-wait: 100
+#
+# loki-batch-entries-number - Size of the buch buffer. 
+# batch will be pushed to LOKI in case number of messahes exceed loki-batch-entries-number or loki-batch-wait will expire
+loki-batch-entries-number: 100
+#
+# loki-http-timeout - HTTP POST timeout in case LOKI server does not responce
+loki-http-timeout
+#
+# loki-time-location - Alert time Location
+loki-time-location = "Europe/Moscow"
