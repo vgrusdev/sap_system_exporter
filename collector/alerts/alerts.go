@@ -97,7 +97,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		_, after, _ := strings.Cut(promDescString, "variableLabels: {")
 		after = strings.TrimSuffix(after, "}}")
 		labelNames = strings.Split(after, ",")
-		log.Debugln(labelNames)
+		//log.Debugf("alerts.go: Labels: %s\n", labelNames)
 		timeLocation = loki_client.GetLocation()
 	}
 
@@ -167,7 +167,10 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 										string(alert_item.Value) },
 								commonLabels...)
 			
+			//send_to_prom := client.Config.Viper.GetBool("send_alerts_to_prom")	// send_alerts_to_prom = bool in config file
 			// Response to Prometheus request (may be to setup IF...  TODO )
+			// need to check what will be if I will not send anything to prom.
+			// or should I send something small....
 			ch <- c.MakeGaugeMetric("Alert", state, labels...)
 
 			// Push to LOKI ====================================================================
