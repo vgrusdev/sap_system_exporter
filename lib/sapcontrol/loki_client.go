@@ -48,8 +48,8 @@ func NewLokiClient( myConfig *config.MyConfig ) (promtail.Client) {
 		Location:               loc,
 	}
 
-	//c, err := promtail.NewClientProto(&cfg)
-	c, err := promtail.NewClientJson(&cfg)
+	c, err := promtail.NewClientProto(&cfg)
+	//c, err := promtail.NewClientJson(&cfg)
 	if err != nil {
 		log.Errorf("Will not use LOKI to push Alerts. Client Create Error: %s\n", err)
 		return nil
