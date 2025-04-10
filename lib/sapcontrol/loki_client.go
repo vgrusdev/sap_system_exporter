@@ -2,6 +2,7 @@ package sapcontrol
 
 import (
 	"time"
+	//"regexp"
 	//"context"
 	//"net"
 	//"net/http"
@@ -50,10 +51,8 @@ func NewLokiClient( myConfig *config.MyConfig ) (promtail.Client) {
 	//c, err := promtail.NewClientProto(&cfg)
 	c, err := promtail.NewClientJson(&cfg)
 	if err != nil {
-		log.Errorf("Client Create Error: %s", err)
+		log.Errorf("Will not use LOKI to push Alerts. Client Create Error: %s\n", err)
 		return nil
 	}
 	return c
 }
-
-

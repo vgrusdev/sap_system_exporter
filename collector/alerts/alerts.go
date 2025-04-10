@@ -26,7 +26,7 @@ func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "State"})
-	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Description", "ATime", "State", "instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Message", "ATime", "Level", "instance_name", "instance_number", "SID", "instance_hostname"})
 	return c, nil
 }
 
@@ -177,7 +177,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 					log.Warnf("Alert metrics LabelSet mismatch: %s", err)
 					continue
 				}
-				message := string(labelSet["Description"])
+				message := string(labelSet["Message"])
 				aTime   := string(labelSet["ATime"])
 
 				t, err := time.ParseInLocation(timeFormat, aTime, timeLocation)
@@ -185,7 +185,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 					fmt.Printf("Warning: %s\n", err)
 					t = time.Now()
 				}
-				delete(labelSet, "Description")
+				delete(labelSet, "Message")
 				delete(labelSet, "ATime")
 	
 				sInputEntry := promtail.SingleEntry {
