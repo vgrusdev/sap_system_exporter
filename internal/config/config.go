@@ -66,18 +66,24 @@ func validateSapControlUrl(config *viper.Viper) error {
 		return errors.Wrap(err, "could not parse uri: " + sapControlUrl)
 	}
 
-	if d := config.GetString("host-domain"); d != "" {
-		// Add domain to hostname if needed
-		// Simple checking "." presents in the hostname 
-    	//  Using Contains() function 
-    	if !strings.Contains(u.Hostname(), ".") {
-			u.Host = u.Hostname() + "." + d + ":" + u.Port()
+	host, domain, f := strings.Cut(u.Hostname(), ".")
+	if f == true {
+		// hostname contains domain after dot.
+		config.Set("host-domain", domain)
+		//return nil
+	} else {
+		// no domain part in the hostname
+		if domain = config.GetString("host-domain"); domain != "" {
+			// Add domain to hostname
+			u.Host = host + "." + domain + ":" + u.Port()
 			sapControlUrl = u.String()
 			// double checking url validity after adding domain
 			if _, err := url.ParseRequestURI(sapControlUrl); err != nil {
 				return errors.Wrap(err, "could not parse uri after adding domain: " + sapControlUrl)
 			}
 			config.Set("sap-control-url", sapControlUrl)
+		} else {
+			log.Debugf("No domain part in the hostname, and host-domain parameter is empty: %s", u.Hostname())
 		}
 	}
 	return nil
