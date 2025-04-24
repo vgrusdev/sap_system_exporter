@@ -198,7 +198,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 				}
 				delete(labelSet, "Message")
 				delete(labelSet, "ATime")
-				labelSet["level"] = sapcontrol.StateColorToLevel(alert_item.Value)
+				labelSet["level"], _ = sapcontrol.StateColorToLevel(alert_item.Value)
 	
 				sInputEntry := promtail.SingleEntry {
 					Labels:  labelSet,
