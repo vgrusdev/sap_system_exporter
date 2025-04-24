@@ -155,7 +155,8 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			}
 			alert_item_list = append(alert_item_list, alert_item)
 		}
-		if send_to_prom != true {
+		if send_to_prom == true {
+			// Remove duplicates for Prometheus
 			log.Debugf("Alerts in the list BEFORE remove duplicates: %d", len(alert_item_list) )
 			alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
 			log.Debugf("Alerts in the list AFTER remove duplicates: %d", len(alert_item_list) )
