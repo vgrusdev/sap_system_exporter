@@ -302,6 +302,22 @@ func StateColorToFloat(statecolor STATECOLOR) (float64, error) {
 	}
 }
 
+// makes the STATECOLOR values more metric friendly
+func StateColorToLevel(statecolor STATECOLOR) (string, error) {
+	switch statecolor {
+	case STATECOLOR_GRAY:
+		return "unknown", nil
+	case STATECOLOR_GREEN:
+		return "info", nil
+	case STATECOLOR_YELLOW:
+		return "warning", nil
+	case STATECOLOR_RED:
+		return "error", nil
+	default:
+		return "alert", errors.New("Invalid STATECOLOR value")
+	}
+}
+
 // removes any duplicates in the array of comparable elements, e.g. structs
 //  parameter - array, returns same type array, but w/o duplicated elements
 func RemoveDuplicate[T comparable](sliceList []T) []T {

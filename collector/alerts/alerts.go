@@ -26,7 +26,9 @@ func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "State"})
-	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Message", "ATime", "Level", "instance_name", "instance_number", "SID", "instance_hostname"})
+	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Message", "ATime", "Level", "instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Message", "ATime", "State", "instance_name", "instance_number", "SID", "instance_hostname"})
+
 	return c, nil
 }
 
@@ -81,7 +83,9 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 	if err != nil {
 		return errors.Wrap(err, "SAPControl config Copy error")
 	}
-	
+	send_to_prom := client.Config.Viper.GetBool("send_alerts_to_prom")	// send_alerts_to_prom = bool in config file
+	log.Debugln("Will not send Alerts to Prom")
+
 	const timeFormat = "2006 01 02 15:04:05"
 	var labelNames []string
 	var timeLocation *time.Location
@@ -148,11 +152,13 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 			}
 			alert_item_list = append(alert_item_list, alert_item)
 		}
-	
-		log.Debugf("Alerts in the list BEFORE remove duplicates: %d", len(alert_item_list) )
-		alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
-		log.Debugf("Alerts in the list AFTER remove duplicates: %d", len(alert_item_list) )
-
+		if send_to_prom != true {
+			log.Debugf("Alerts in the list BEFORE remove duplicates: %d", len(alert_item_list) )
+			alert_item_list = sapcontrol.RemoveDuplicate(alert_item_list)
+			log.Debugf("Alerts in the list AFTER remove duplicates: %d", len(alert_item_list) )
+		} else {
+			log.Debugf("Alerts in the list: %d", len(alert_item_list) )
+		}
 		for _, alert_item := range alert_item_list {
 
 			state, err := sapcontrol.StateColorToFloat(alert_item.Value)
@@ -167,14 +173,14 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 										string(alert_item.Value) },
 								commonLabels...)
 			
-			send_to_prom := client.Config.Viper.GetBool("send_alerts_to_prom")	// send_alerts_to_prom = bool in config file
+			
 			// Response to Prometheus request (may be to setup IF...  TODO )
 			// need to check what will be if I will not send anything to prom.
 			// or should I send something small....
 			if send_to_prom == true {
 				ch <- c.MakeGaugeMetric("Alert", state, labels...)
 			}
-			
+
 			// Push to LOKI ====================================================================
 			if loki_client != nil {
 				labelSet, err := labelSetFromArrays(labelNames, labels)
@@ -192,6 +198,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 				}
 				delete(labelSet, "Message")
 				delete(labelSet, "ATime")
+				labelSet["level"] = sapcontrol.StateColorToLevel(alert_item.Value)
 	
 				sInputEntry := promtail.SingleEntry {
 					Labels:  labelSet,
