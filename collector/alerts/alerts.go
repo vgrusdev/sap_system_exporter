@@ -84,8 +84,11 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		return errors.Wrap(err, "SAPControl config Copy error")
 	}
 	send_to_prom := client.Config.Viper.GetBool("send_alerts_to_prom")	// send_alerts_to_prom = bool in config file
-	log.Debugln("Will not send Alerts to Prom")
-
+	if send_to_prom == true {
+		log.Debugln("Will send alerts to prom")
+	} else {
+		log.Debugln("Will not send Alerts to Prom")
+	}
 	const timeFormat = "2006 01 02 15:04:05"
 	var labelNames []string
 	var timeLocation *time.Location
