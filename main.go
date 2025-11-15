@@ -6,16 +6,16 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/vgrusdev/sap_system_exporter/collector/registry"
-	"github.com/vgrusdev/sap_system_exporter/collector/start_service"
-	"github.com/vgrusdev/sap_system_exporter/internal"
-	"github.com/vgrusdev/sap_system_exporter/internal/config"
-	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
+	"github.com/vgrusdev/sap_system_exporter/collector/registry"
+	"github.com/vgrusdev/sap_system_exporter/collector/start_service"
+	"github.com/vgrusdev/sap_system_exporter/internal"
+	"github.com/vgrusdev/sap_system_exporter/internal/config"
+	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 )
 
 var (
@@ -36,6 +36,7 @@ func init() {
 	flag.String("sap-control-url", "localhost:50013", "The URL of the SAPControl SOAP web service, e.g. [https://]$HOST:$PORT. Port: 5xx13(http) or 5xx14(https). Recommendation to connect to Central Instance.")
 	flag.String("host-domain", "", "Optional Domain name to make FQDN together with hostname, Recommended in case of SAP hostname is a sigle-word hostname.")
 	flag.String("tls-skip-verify", "no", "For HTTPS scheme, should certificates signed by unknown authority being ignored")
+	flag.String("alert_samples_max_age", "168h", "Oldest acceptable timestamp for Alert item (back since now()). Use \"0s\" for unlim, default 168h - 1 week")
 	flag.StringP("config", "c", "", "The path to a custom configuration file. NOTE: it must be in yaml format.")
 	flag.CommandLine.SortFlags = false
 
@@ -70,21 +71,21 @@ func run() {
 	if loki_client != nil {
 		defer loki_client.Shutdown()
 	}
-	
+
 	webService := sapcontrol.NewWebService(client)
 	webService.SetLokiClient(loki_client)
 
 	globalConfig := config.Viper
-	
+
 	// VG ++
 	/*
-	client = webService.GetMyClient()
-	myConfig, _ := client.Config.Copy()
-	_ = myConfig.SetURL("http://abc:3456")
-	myClient := sapcontrol.NewSoapClient(myConfig)
-	myWebService := sapcontrol.NewWebService(myClient)
-	
-	_, _ = myWebService.GetCurrentInstance()
+		client = webService.GetMyClient()
+		myConfig, _ := client.Config.Copy()
+		_ = myConfig.SetURL("http://abc:3456")
+		myClient := sapcontrol.NewSoapClient(myConfig)
+		myWebService := sapcontrol.NewWebService(myClient)
+
+		_, _ = myWebService.GetCurrentInstance()
 	*/
 	// VG --
 
