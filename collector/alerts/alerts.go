@@ -207,7 +207,7 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 					t = time.Now()
 				}
 				if (samples_max_age >= 0) && (time.Since(t) > samples_max_age) {
-					log.Warnf("Alert entry too far behind, ts=%v", t)
+					log.Infof("Alert entry too far behind, ts=%v", t)
 					continue
 				}
 				delete(labelSet, "Message")
