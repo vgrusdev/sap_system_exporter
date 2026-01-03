@@ -1,6 +1,7 @@
 package sapcontrol
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strconv"
@@ -63,18 +64,13 @@ func (s *webService) GetCurrentInstance() (*CurrentSapInstance, error) {
 	return s.currentSapInstance, err
 }
 */
-func (s *webService) GetCurrentInstance() (*CurrentSapInstance, error) {
-	var err error
+func (s *webService) GetCurrentInstance(ctx context.Context, host, port string) (*CurrentSapInstance, error) {
 
-	// since the information we want here doesn't change over time, we only want to execute the remote call once
-	s.once.Do(func() {
-		var response *GetInstancePropertiesResponse
-		response, err = s.GetInstanceProperties()
-
-		if err != nil {
-			err = errors.Wrap(err, "could not perform GetInstanceProperties query")
-			return
-		}
+	response, err := s.GetInstanceProperties(ctx, host, port)
+	if err != nil {
+		err = errors.Wrap(err, "could not perform GetInstanceProperties query")
+		return nil, err
+	}
 
 		s.currentSapInstance = &CurrentSapInstance{}
 

@@ -1,8 +1,9 @@
 package sapcontrol
 
 import (
+	"context"
 	"encoding/xml"
-	"sync"
+	"fmt"
 
 	"strings"
 
@@ -25,19 +26,19 @@ type WebService interface {
 	GetQueueStatistic() (*GetQueueStatisticResponse, error)
 
 	/* Returns a list of SAP instances of the SAP system. */
-	GetSystemInstanceList() (*GetSystemInstanceListResponse, error)
+	GetSystemInstanceList(context.Context, string, string) (*GetSystemInstanceListResponse, error)
 
 	/* Returns a list of available instance features and information how to get it. */
-	GetInstanceProperties() (*GetInstancePropertiesResponse, error)
+	GetInstanceProperties(context.Context, string, string) (*GetInstancePropertiesResponse, error)
 
 	/* Custom method to get the current instance data. This is not something natively exposed by the webservice. */
 	GetCurrentInstance() (*CurrentSapInstance, error)
 
 	GetAlerts() (*GetAlertsResponse, error)
 
-	GetMyClient() (*MyClient)
-	SetLokiClient( promtail.Client)
-	GetLokiClient() (promtail.Client)
+	GetMyClient() *MyClient
+	SetLokiClient(promtail.Client)
+	GetLokiClient() promtail.Client
 }
 
 type STATECOLOR string
@@ -167,9 +168,9 @@ type GetAlerts struct {
 }
 
 type GetAlertsResponse struct {
-	XMLName     xml.Name   `xml:"urn:SAPControl GetAlertsResponse"`
-	RootTidName string     `xml:"RootTidName,omitempty" json:"RootTidName,omitempty"`
-	Alerts      []*Alert   `xml:"alert>item,omitempty" json:"instance>item,omitempty"`
+	XMLName     xml.Name `xml:"urn:SAPControl GetAlertsResponse"`
+	RootTidName string   `xml:"RootTidName,omitempty" json:"RootTidName,omitempty"`
+	Alerts      []*Alert `xml:"alert>item,omitempty" json:"instance>item,omitempty"`
 }
 
 type Alert struct {
@@ -177,47 +178,78 @@ type Alert struct {
 	Attribute   string     `xml:"Attribute,omitempty" json:"Attribute,omitempty"`
 	Value       STATECOLOR `xml:"Value,omitempty" json:"Value,omitempty"`
 	Description string     `xml:"Description,omitempty" json:"Description,omitempty"`
-	ATime        string     `xml:"Time,omitempty" json:"Time,omitempty"`
+	ATime       string     `xml:"Time,omitempty" json:"Time,omitempty"`
 	Tid         string     `xml:"Tid,omitempty" json:"Tid,omitempty"`
 	Aid         string     `xml:"Aid,omitempty" json:"Aid,omitempty"`
 }
 
 type webService struct {
-	Client             *MyClient
-	once               *sync.Once
-	currentSapInstance *CurrentSapInstance
-	LokiClient         promtail.Client
+	Client *MyClient
+	//once               *sync.Once
+	//currentSapInstance *CurrentSapInstance
+	LokiClient promtail.Client
 }
 
 // constructor of a WebService interface
 func NewWebService(myClient *MyClient) WebService {
 	return &webService{
 		Client: myClient,
-		once:   &sync.Once{},
+		//once:       &sync.Once{},
 		LokiClient: nil,
 	}
 }
 
-func (s *webService) GetMyClient() (*MyClient) {
+func (s *webService) GetMyClient() *MyClient {
 	return s.Client
 }
 func (s *webService) SetLokiClient(pClient promtail.Client) {
 	s.LokiClient = pClient
 }
-func (s *webService) GetLokiClient() (promtail.Client) {
+func (s *webService) GetLokiClient() promtail.Client {
 	return s.LokiClient
 }
 
+// implements WebService.GetSystemInstanceList()
+func (s *webService) GetSystemInstanceList(ctx context.Context, host, port string) (*GetSystemInstanceListResponse, error) {
+	c := s.Client
+	endpoints := []string{
+		fmt.Sprintf("http://%s:%s/sap/bc/soap/rfc", host, port),
+		fmt.Sprintf("http://%s:%s/SAPControl.cgi", host, port),
+		fmt.Sprintf("http://%s:%s/sap/bc/webdynpro/sap/dba_control", host, port),
+	}
+	var lastErr error
+	for _, endpoint := range endpoints {
+		client := c.CreateSoapClient(endpoint)
+
+		request := &GetSystemInstanceList{}
+		response := &GetSystemInstanceListResponse{}
+
+		if err := client.CallContext(ctx, "GetSystemInstanceList", request, response); err != nil {
+			lastErr = err
+			continue
+		}
+		if len(response.Instances) == 0 {
+			lastErr = fmt.Errorf("GetSystemInstanceList: no instances found at %s", endpoint)
+			continue
+		}
+		return response, nil
+	}
+	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %v", lastErr)
+}
+
 // implements WebService.GetInstanceProperties()
-func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, error) {
+func (s *webService) GetInstanceProperties(ctx context.Context, host, port string) (*GetInstancePropertiesResponse, error) {
+	c := s.Client
+	endpoint := fmt.Sprintf("http://%s:%s/sap/bc/soap/rfc", host, port)
+	client := c.CreateSoapClient(endpoint)
+
 	request := &GetInstanceProperties{}
 	response := &GetInstancePropertiesResponse{}
-	client := s.Client.SoapClient
-	err := client.Call("''", request, response)
-	if err != nil {
-		return nil, err
-	}
 
+	err := client.CallContext(ctx, "GetInstanceProperties", request, response)
+	if err != nil {
+		return nil, fmt.Errorf("GetInstanceProperties failed, endpoint=%s, err=%v", endpoint, err)
+	}
 	return response, nil
 }
 
@@ -225,19 +257,6 @@ func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, er
 func (s *webService) GetProcessList() (*GetProcessListResponse, error) {
 	request := &GetProcessList{}
 	response := &GetProcessListResponse{}
-	client := s.Client.SoapClient
-	err := client.Call("''", request, response)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
-}
-
-// implements WebService.GetSystemInstanceList()
-func (s *webService) GetSystemInstanceList() (*GetSystemInstanceListResponse, error) {
-	request := &GetSystemInstanceList{}
-	response := &GetSystemInstanceListResponse{}
 	client := s.Client.SoapClient
 	err := client.Call("''", request, response)
 	if err != nil {
@@ -319,30 +338,31 @@ func StateColorToLevel(statecolor STATECOLOR) (string, error) {
 }
 
 // removes any duplicates in the array of comparable elements, e.g. structs
-//  parameter - array, returns same type array, but w/o duplicated elements
+//
+//	parameter - array, returns same type array, but w/o duplicated elements
 func RemoveDuplicate[T comparable](sliceList []T) []T {
-    allKeys := make(map[T]bool)
-    list := []T{}
-    for _, item := range sliceList {
-        if _, value := allKeys[item]; !value {
-            allKeys[item] = true
-            list = append(list, item)
-        }
-    }
-    return list
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
 
 // make map from the string in format "KEY1=VALUE1;KEY2=VALUE2;...;KEYx=VALUEx;"
-func Make_string_map (s string) (map[string]string) {
-               
+func Make_string_map(s string) map[string]string {
+
 	m := make(map[string]string)
 	var s_arr []string
-   
+
 	s_arr = strings.Split(s, ";")
 	for _, item := range s_arr {
-				   if before, after, found := strings.Cut(item, "="); found {
-								   m[before] = after
-				   }
+		if before, after, found := strings.Cut(item, "="); found {
+			m[before] = after
+		}
 	}
 	return m
 }

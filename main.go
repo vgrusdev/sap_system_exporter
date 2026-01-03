@@ -8,9 +8,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
+	"github.com/vgrusdev/sap_system_exporter/cache"
 	"github.com/vgrusdev/sap_system_exporter/collector/registry"
 	"github.com/vgrusdev/sap_system_exporter/collector/start_service"
 	"github.com/vgrusdev/sap_system_exporter/internal"
@@ -60,22 +62,38 @@ func main() {
 func run() {
 	var err error
 
-	config, err := config.New(flag.CommandLine)
+	// Initialize logger
+	logger := config.NewLogger("main")
+
+	myConfig, err := config.New(flag.CommandLine)
 	if err != nil {
 		log.Fatalf("Could not initialize config: %s", err)
 	}
+	v := myConfig.Viper
 
-	client := sapcontrol.NewSoapClient(config)
-	loki_client := sapcontrol.NewLokiClient(config)
+	logger.SetLevel(v.GetString("log_level"))
+	//logger.Debug("Config %s", )
+	logger.Info("Starting SAP System Exporter",
+		"version", version,
+		"sap_control_url", v.GetString("sap_control_url"),
+		"loki_url", v.GetString("loki_url"),
+		//"primary_instance", cfg.PrimaryInstance,
+		//"host", cfg.Host,
+		//"port", cfg.Port,
+	)
+
+	// Initialize cache manager
+	cacheMgr := cache.NewManager(cfg.CacheTTL)
+
+	myClient := sapcontrol.NewSoapClient(myConfig)
+	loki_client := sapcontrol.NewLokiClient(myConfig)
 
 	if loki_client != nil {
 		defer loki_client.Shutdown()
 	}
 
-	webService := sapcontrol.NewWebService(client)
+	webService := sapcontrol.NewWebService(myClient)
 	webService.SetLokiClient(loki_client)
-
-	globalConfig := config.Viper
 
 	// VG ++
 	/*
@@ -111,10 +129,11 @@ func run() {
 
 	// if we're not in debug log level, we unregister the Go runtime metrics collector that gets registered by default
 	if !log.IsLevelEnabled(log.DebugLevel) {
-		prometheus.Unregister(prometheus.NewGoCollector())
+		// prometheus.Unregister(prometheus.NewGoCollector())
+		prometheus.Unregister(collectors.NewGoCollector())
 	}
 
-	fullListenAddress := fmt.Sprintf("%s:%s", globalConfig.Get("address"), globalConfig.Get("port"))
+	fullListenAddress := fmt.Sprintf("%s:%s", myConfig.Viper.Get("address"), myConfig.Viper.Get("port"))
 
 	http.HandleFunc("/", internal.Landing)
 	http.Handle("/metrics", promhttp.Handler())
