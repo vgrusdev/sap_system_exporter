@@ -8,7 +8,7 @@ port: "9680"
 # The log level.
 #
 # Possible values, from less to most verbose: error, warn, info, debug.
-log-level: "info"
+log_level: "info"
 
 # The url of the SAPControl web service.
 #
@@ -19,42 +19,42 @@ log-level: "info"
 # By default you shold to provide FQDN for hostname of sap-control-url.
 # Domain part will further be used for all instances hostnames
 # Alternate way - provide host-domain, that will pe appended to instances hostnames in case they are not FQDN.
-sap-control-url: "localhost:50013"
-host-domain: ""
-tls-skip-verify: "yes"
+sap_control_url: "localhost:50013"
+host_domain: ""
+tls_skip_verify: "yes"
 # HTTP Basic Authentication credentials for the SAPControl web service, e.g. <sid>adm user and password.
 #
 # These are empty by default, which will cause the exporter to gracefully fail at collecting most metrics.
 # Make sure this file's permissions are set to 600.
 #
 # It is strongly suggested to use the TLS endpoint when using this authentication scheme.
-sap-control-user: ""
-sap-control-password: ""
+sap_control_user: ""
+sap_control_password: ""
 #
-send_alerts_to_prom: false
+send_alerts_to_prom: "yes""
 # Loki section.
 # sap-alerts will be written to the LOKI server in case of loki-url is not empty string.
 #
-# loki-url - full url-path to push LOKI stream, e.g. http://localhost:3100/loki/api/v1/push
+# loki_url - full url_path to push LOKI stream, e.g. http://localhost:3100/loki/api/v1/push
 # if empty srtring, LOKI will not be PUSHED
-loki-url: ""
+loki_url: ""
 #
-# loki-name - "name" label will be added to all other labers, so LOKI will recognise it as servce_name
-#loki-name: "sap_alerts"
-loki-name: "sap_alerts"
+# loki_name - "name" label will be added to all other labers, so LOKI will recognise it as servce_name
+#loki_name: "sap_alerts"
+loki_name: "sap_alerts"
 #
 # LOKI Tenant ID: used to separate different loki streams. if not set fake TenantID will be set.
-loki-tenantid: "fake"
+loki_tenantid: "fake"
 #
-# loki-batch-wait - Max wait time (Milliseconds) before bunch of messages will be sent to LOKI
-loki-batch-wait: 100
+# loki_batch_wait - Max wait time (Milliseconds) before bunch of messages will be sent to LOKI
+loki_batch_wait: 100
 #
-# loki-batch-entries-number - Size of the buch buffer. 
+# loki_batch_entries_number - Size of the buch buffer. 
 # batch will be pushed to LOKI in case number of messahes exceed loki-batch-entries-number or loki-batch-wait will expire
-loki-batch-entries-number: 32
+loki_batch_entries_number: 32
 #
-# loki-http-timeout - HTTP POST timeout in case LOKI server does not responce
-loki-http-timeout: 1000
+# loki_http_timeout - HTTP POST timeout in case LOKI server does not responce
+loki_http_timeout: 1000
 #
-# loki-time-location - Alert time Location
-loki-time-location = "Europe/Moscow"
+# loki_time_location - Alert time Location
+loki_time_location = "Europe/Moscow"
