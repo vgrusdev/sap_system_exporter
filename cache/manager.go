@@ -27,7 +27,6 @@ func (m *Manager) GetInstances() []InstanceInfo {
 	if m.isStale() {
 		return nil
 	}
-
 	return m.instances
 }
 
@@ -52,7 +51,6 @@ func (m *Manager) GetInstance(instanceNr string) *InstanceInfo {
 			return &m.instances[i]
 		}
 	}
-
 	return nil
 }
 
@@ -66,7 +64,6 @@ func (m *Manager) UpdateInstance(instanceNr string, updater func(*InstanceInfo))
 			return true
 		}
 	}
-
 	return false
 }
 

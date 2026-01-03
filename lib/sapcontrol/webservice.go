@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"sync"
 
 	"strings"
 
@@ -27,10 +26,10 @@ type WebService interface {
 	GetQueueStatistic() (*GetQueueStatisticResponse, error)
 
 	/* Returns a list of SAP instances of the SAP system. */
-	GetSystemInstanceList() (*GetSystemInstanceListResponse, error)
+	GetSystemInstanceList(context.Context, string, string) (*GetSystemInstanceListResponse, error)
 
 	/* Returns a list of available instance features and information how to get it. */
-	GetInstanceProperties() (*GetInstancePropertiesResponse, error)
+	GetInstanceProperties(context.Context, string, string) (*GetInstancePropertiesResponse, error)
 
 	/* Custom method to get the current instance data. This is not something natively exposed by the webservice. */
 	GetCurrentInstance() (*CurrentSapInstance, error)
@@ -185,17 +184,17 @@ type Alert struct {
 }
 
 type webService struct {
-	Client             *MyClient
-	once               *sync.Once
-	currentSapInstance *CurrentSapInstance
-	LokiClient         promtail.Client
+	Client *MyClient
+	//once               *sync.Once
+	//currentSapInstance *CurrentSapInstance
+	LokiClient promtail.Client
 }
 
 // constructor of a WebService interface
 func NewWebService(myClient *MyClient) WebService {
 	return &webService{
-		Client:     myClient,
-		once:       &sync.Once{},
+		Client: myClient,
+		//once:       &sync.Once{},
 		LokiClient: nil,
 	}
 }
@@ -230,24 +229,27 @@ func (s *webService) GetSystemInstanceList(ctx context.Context, host, port strin
 			continue
 		}
 		if len(response.Instances) == 0 {
-			lastErr = fmt.Errorf("no instances found at %s", endpoint)
+			lastErr = fmt.Errorf("GetSystemInstanceList: no instances found at %s", endpoint)
 			continue
 		}
 		return response, nil
 	}
-	return nil, fmt.Errorf("SOAP.Client.GetSystemInstanceList: failed to get instances from any endpoint: %v", lastErr)
+	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %v", lastErr)
 }
 
 // implements WebService.GetInstanceProperties()
-func (s *webService) GetInstanceProperties() (*GetInstancePropertiesResponse, error) {
+func (s *webService) GetInstanceProperties(ctx context.Context, host, port string) (*GetInstancePropertiesResponse, error) {
+	c := s.Client
+	endpoint := fmt.Sprintf("http://%s:%s/sap/bc/soap/rfc", host, port)
+	client := c.CreateSoapClient(endpoint)
+
 	request := &GetInstanceProperties{}
 	response := &GetInstancePropertiesResponse{}
-	client := s.Client.SoapClient
-	err := client.Call("''", request, response)
-	if err != nil {
-		return nil, err
-	}
 
+	err := client.CallContext(ctx, "GetInstanceProperties", request, response)
+	if err != nil {
+		return nil, fmt.Errorf("GetInstanceProperties failed, endpoint=%s, err=%v", endpoint, err)
+	}
 	return response, nil
 }
 

@@ -3,18 +3,18 @@ package cache
 import (
 	"time"
 
-	"github.com/vgrusdev/sap_metrics_exporter/soap"
+	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 )
 
 type InstanceInfo struct {
-	soap.SAPInstance                 // Embedded base instance
-	DispatcherPort   string          `json:"dispatcher_port"`
-	EnqueuePort      string          `json:"enqueue_port"`
-	LastScrape       time.Time       `json:"last_scrape"`
-	LastError        string          `json:"last_error,omitempty"`
-	ScrapeSuccess    bool            `json:"scrape_success"`
-	IsPrimary        bool            `json:"is_primary"`
-	Metrics          InstanceMetrics `json:"metrics,omitempty"`
+	sapcontrol.SAPInstance                 // Embedded base instance
+	DispatcherPort         string          `json:"dispatcher_port"`
+	EnqueuePort            string          `json:"enqueue_port"`
+	LastScrape             time.Time       `json:"last_scrape"`
+	LastError              string          `json:"last_error,omitempty"`
+	ScrapeSuccess          bool            `json:"scrape_success"`
+	IsPrimary              bool            `json:"is_primary"`
+	Metrics                InstanceMetrics `json:"metrics,omitempty"`
 }
 
 type InstanceMetrics struct {

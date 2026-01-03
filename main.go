@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
+	"github.com/vgrusdev/sap_system_exporter/cache"
 	"github.com/vgrusdev/sap_system_exporter/collector/registry"
 	"github.com/vgrusdev/sap_system_exporter/collector/start_service"
 	"github.com/vgrusdev/sap_system_exporter/internal"
@@ -61,23 +62,37 @@ func main() {
 func run() {
 	var err error
 
+	// Initialize logger
+	logger := config.NewLogger("main")
+
 	myConfig, err := config.New(flag.CommandLine)
 	if err != nil {
 		log.Fatalf("Could not initialize config: %s", err)
 	}
+	v := myConfig.Viper
 
-	// Initialize logger
-	logger := config.NewLogger("main")
-	logger.SetLevel(myConfig.Viper.GetString("log_level"))
+	logger.SetLevel(v.GetString("log_level"))
+	//logger.Debug("Config %s", )
+	logger.Info("Starting SAP System Exporter",
+		"version", version,
+		"sap_control_url", v.GetString("sap_control_url"),
+		"loki_url", v.GetString("loki_url"),
+		//"primary_instance", cfg.PrimaryInstance,
+		//"host", cfg.Host,
+		//"port", cfg.Port,
+	)
 
-	client := sapcontrol.NewSoapClient(myConfig)
+	// Initialize cache manager
+	cacheMgr := cache.NewManager(cfg.CacheTTL)
+
+	myClient := sapcontrol.NewSoapClient(myConfig)
 	loki_client := sapcontrol.NewLokiClient(myConfig)
 
 	if loki_client != nil {
 		defer loki_client.Shutdown()
 	}
 
-	webService := sapcontrol.NewWebService(client)
+	webService := sapcontrol.NewWebService(myClient)
 	webService.SetLokiClient(loki_client)
 
 	// VG ++
