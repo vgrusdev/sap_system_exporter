@@ -9,13 +9,15 @@ import (
 
 	"github.com/hooklift/gowsdl/soap"
 	//"github.com/spf13/viper"
+	"github.com/vgrusdev/sap_system_exporter/cache"
 	"github.com/vgrusdev/sap_system_exporter/internal/config"
 )
 
 type MyClient struct {
 	//SoapClient *soap.Client
-	config *config.MyConfig
-	logger *config.Logger
+	config   *config.MyConfig
+	logger   *config.Logger
+	cacheMgr *cache.Manager
 }
 
 func NewSoapClient(myConfig *config.MyConfig) *MyClient {

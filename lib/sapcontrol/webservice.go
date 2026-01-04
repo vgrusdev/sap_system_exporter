@@ -17,24 +17,25 @@ import (
 // the main interface exposed by this package
 type WebService interface {
 	/* Returns a list of all processes directly started by the webservice according to the SAP start profile. */
-	GetProcessList() (*GetProcessListResponse, error)
+	GetProcessList(context.Context, string) (*GetProcessListResponse, error)
 
 	/* Returns enque statistic. */
-	EnqGetStatistic() (*EnqGetStatisticResponse, error)
+	EnqGetStatistic(context.Context, string) (*EnqGetStatisticResponse, error)
 
 	/* Returns a list of queue information of work processes and icm (similar to dpmon). */
-	GetQueueStatistic() (*GetQueueStatisticResponse, error)
+	GetQueueStatistic(context.Context, string) (*GetQueueStatisticResponse, error)
 
 	/* Returns a list of SAP instances of the SAP system. */
-	GetSystemInstanceList(context.Context, string, string) (*GetSystemInstanceListResponse, error)
+	GetSystemInstanceList(context.Context) (*GetSystemInstanceListResponse, error)
 
 	/* Returns a list of available instance features and information how to get it. */
-	GetInstanceProperties(context.Context, string, string) (*GetInstancePropertiesResponse, error)
+	GetInstanceProperties(context.Context, string) (*GetInstancePropertiesResponse, error)
 
 	/* Custom method to get the current instance data. This is not something natively exposed by the webservice. */
-	GetCurrentInstance() (*CurrentSapInstance, error)
+	GetCurrentInstance(context.Context, string) (*InstanceProperties, error)
+	GetCachedInstanceList(context.Context) ([]InstanceInfo, error)
 
-	GetAlerts() (*GetAlertsResponse, error)
+	GetAlerts(context.Context, string) (*GetAlertsResponse, error)
 
 	GetMyClient() *MyClient
 	SetLokiClient(promtail.Client)
@@ -209,13 +210,16 @@ func (s *webService) GetLokiClient() promtail.Client {
 	return s.LokiClient
 }
 
-// implements WebService.GetSystemInstanceList()
-func (s *webService) GetSystemInstanceList(ctx context.Context, host, port string) (*GetSystemInstanceListResponse, error) {
+// implements WebService.GetSystemInstanceList(context.Context)
+func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInstanceListResponse, error) {
+
 	c := s.Client
+	sapURL := c.config.Viper.GetString("sap_control_url")
+
 	endpoints := []string{
-		fmt.Sprintf("http://%s:%s/sap/bc/soap/rfc", host, port),
-		fmt.Sprintf("http://%s:%s/SAPControl.cgi", host, port),
-		fmt.Sprintf("http://%s:%s/sap/bc/webdynpro/sap/dba_control", host, port),
+		fmt.Sprintf("%s/sap/bc/soap/rfc", sapURL),
+		fmt.Sprintf("%s/SAPControl.cgi", sapURL),
+		fmt.Sprintf("%s/sap/bc/webdynpro/sap/dba_control", sapURL),
 	}
 	var lastErr error
 	for _, endpoint := range endpoints {
@@ -237,10 +241,10 @@ func (s *webService) GetSystemInstanceList(ctx context.Context, host, port strin
 	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %v", lastErr)
 }
 
-// implements WebService.GetInstanceProperties()
-func (s *webService) GetInstanceProperties(ctx context.Context, host, port string) (*GetInstancePropertiesResponse, error) {
+// implements WebService.GetInstanceProperties(context.Context, string)
+func (s *webService) GetInstanceProperties(ctx context.Context, endpoint string) (*GetInstancePropertiesResponse, error) {
 	c := s.Client
-	endpoint := fmt.Sprintf("http://%s:%s/sap/bc/soap/rfc", host, port)
+	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
 	client := c.CreateSoapClient(endpoint)
 
 	request := &GetInstanceProperties{}
@@ -253,55 +257,67 @@ func (s *webService) GetInstanceProperties(ctx context.Context, host, port strin
 	return response, nil
 }
 
-// implements WebService.GetProcessList()
-func (s *webService) GetProcessList() (*GetProcessListResponse, error) {
+// implements WebService.GetProcessList(context.Context, string)
+func (s *webService) GetProcessList(ctx context.Context, endpoint string) (*GetProcessListResponse, error) {
+	c := s.Client
+	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	client := c.CreateSoapClient(endpoint)
+
 	request := &GetProcessList{}
 	response := &GetProcessListResponse{}
-	client := s.Client.SoapClient
-	err := client.Call("''", request, response)
+
+	err := client.CallContext(ctx, "GetProcessList", request, response)
 	if err != nil {
 		return nil, err
 	}
-
 	return response, nil
 }
 
-// implements WebService.EnqGetStatistic()
-func (s *webService) EnqGetStatistic() (*EnqGetStatisticResponse, error) {
+// implements WebService.EnqGetStatistic(context.Context, string)
+func (s *webService) EnqGetStatistic(ctx context.Context, endpoint string) (*EnqGetStatisticResponse, error) {
+	c := s.Client
+	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	client := c.CreateSoapClient(endpoint)
+
 	request := &EnqGetStatistic{}
 	response := &EnqGetStatisticResponse{}
-	client := s.Client.SoapClient
-	err := client.Call("''", request, response)
+
+	err := client.Call("EnqGetStatistic", request, response)
 	if err != nil {
 		return nil, err
 	}
-
 	return response, nil
 }
 
-// implements WebService.GetQueueStatistic()
-func (s *webService) GetQueueStatistic() (*GetQueueStatisticResponse, error) {
+// implements WebService.GetQueueStatistic(context.Context, string)
+func (s *webService) GetQueueStatistic(ctx context.Context, endpoint string) (*GetQueueStatisticResponse, error) {
+	c := s.Client
+	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	client := c.CreateSoapClient(endpoint)
+
 	request := &GetQueueStatistic{}
 	response := &GetQueueStatisticResponse{}
-	client := s.Client.SoapClient
+
 	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
 	}
-
 	return response, nil
 }
 
-// implements WebService.GetAlerts()
-func (s *webService) GetAlerts() (*GetAlertsResponse, error) {
+// implements WebService.GetAlerts(context.Context, string)
+func (s *webService) GetAlerts(ctx context.Context, endpoint string) (*GetAlertsResponse, error) {
+	c := s.Client
+	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	client := c.CreateSoapClient(endpoint)
+
 	request := &GetAlerts{}
 	response := &GetAlertsResponse{}
-	client := s.Client.SoapClient
+
 	err := client.Call("''", request, response)
 	if err != nil {
 		return nil, err
 	}
-
 	return response, nil
 }
 
@@ -317,7 +333,7 @@ func StateColorToFloat(statecolor STATECOLOR) (float64, error) {
 	case STATECOLOR_RED:
 		return float64(STATECOLOR_CODE_RED), nil
 	default:
-		return -1, errors.New("Invalid STATECOLOR value")
+		return 0, errors.New("Invalid STATECOLOR value")
 	}
 }
 

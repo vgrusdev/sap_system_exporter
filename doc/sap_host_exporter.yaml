@@ -10,6 +10,10 @@ port: "9680"
 # Possible values, from less to most verbose: error, warn, info, debug.
 log_level: "info"
 
+# sap_sid is optional parameter, only required in case of sap instance properties call error (e.g. in auth error)
+sap_sid: ""
+cache_ttl: "30s"
+scrape_timeout: "30s"
 # The url of the SAPControl web service.
 #
 # Per SAP conventions, the port should usually be 5<instance number>13 for HTTP and 5<instance number>14 for HTTPS.
