@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -79,6 +80,10 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 	for _, instance := range instanceList.Instances {
 		var url string
 
+		hostname := instance.Hostname
+		if !strings.Contains(hostname, ".") {
+			hostname = fmt.Sprintf("%s.%s", hostname, v.GetString("host_domain"))
+		}
 		if useHTTPS == true {
 			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
 		} else {
