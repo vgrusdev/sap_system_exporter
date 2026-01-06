@@ -85,9 +85,9 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 			hostname = fmt.Sprintf("%s.%s", hostname, v.GetString("host_domain"))
 		}
 		if useHTTPS == true {
-			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
+			url = fmt.Sprintf("https://%s:%d", hostname, instance.HttpsPort)
 		} else {
-			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
+			url = fmt.Sprintf("http://%s:%d", hostname, instance.HttpPort)
 		}
 		log.Debugf(" Instance props url: %s", url)
 		singleInstance := &InstanceInfo{
