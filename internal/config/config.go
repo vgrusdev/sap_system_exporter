@@ -32,7 +32,7 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 		Viper: v,
 	}
 	logger := NewLogger("config")
-	logger.SetLevel(v.GetString("log_level"))
+	//logger.SetLevel(v.GetString("log_level")). set below...
 	c.logger = logger
 
 	// Viper binds pflafs (command-line flags to Viper struct)

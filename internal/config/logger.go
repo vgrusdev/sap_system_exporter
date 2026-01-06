@@ -34,7 +34,7 @@ func (l *Logger) SetLevel(level string) {
 
 	switch strings.ToLower(level) {
 	case "debug":
-		l.log("DEBUG", fmt.Sprintf("Logger set level %s for name%s", level, l.name))
+		l.log("DEBUG", fmt.Sprintf("Logger set level %s for name %s", level, l.name))
 		l.level = LevelDebug
 	case "info":
 		l.level = LevelInfo

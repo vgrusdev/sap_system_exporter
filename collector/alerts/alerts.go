@@ -28,9 +28,10 @@ func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 	c := &alertsCollector{
 		collector.NewDefaultCollector("alerts"),
 		webService,
-		config.NewLogger("enqueue_server"),
+		config.NewLogger("alerts"),
 	}
 	c.logger.SetLevel(webService.GetMyClient().GetMyConfig().Viper.GetString("log_level"))
+
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "State"})

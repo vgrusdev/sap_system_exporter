@@ -39,7 +39,7 @@ func (c *MyClient) CreateSoapClient(endpoint string) *soap.Client {
 	//
 	v := c.config.Viper
 	log := c.logger
-	log.SetLevel(v.GetString("log_level"))
+	//log.SetLevel(v.GetString("log_level"))
 
 	opts := []soap.Option{
 		soap.WithBasicAuth(

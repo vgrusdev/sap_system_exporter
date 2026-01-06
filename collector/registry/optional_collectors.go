@@ -4,17 +4,21 @@ import (
 	//"strings"
 	//"fmt"
 
-	"github.com/vgrusdev/sap_system_exporter/collector/dispatcher"
-	"github.com/vgrusdev/sap_system_exporter/collector/enqueue_server"
-	"github.com/vgrusdev/sap_system_exporter/collector/alerts"
-	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
+	"github.com/vgrusdev/sap_system_exporter/collector/alerts"
+	"github.com/vgrusdev/sap_system_exporter/collector/dispatcher"
+	"github.com/vgrusdev/sap_system_exporter/collector/enqueue_server"
+	"github.com/vgrusdev/sap_system_exporter/internal/config"
+	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
+	//log "github.com/sirupsen/logrus"
 )
 
 // RegisterOptionalCollectors register depending on the system where the exporter run the additional collectors
 func RegisterOptionalCollectors(webService sapcontrol.WebService) error {
+
+	log := config.NewLogger("registry")
+	log.SetLevel(webService.GetMyClient().GetMyConfig().Viper.GetString("log_level"))
 
 	enqueueServerCollector, err := enqueue_server.NewCollector(webService)
 	if err != nil {
