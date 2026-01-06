@@ -186,6 +186,31 @@ type Alert struct {
 	Aid         string     `xml:"Aid,omitempty" json:"Aid,omitempty"`
 }
 
+type ABAPGetWPTable struct {
+	XMLName xml.Name `xml:"urn:SAPControl ABAPGetWPTable"`
+}
+type ABAPGetWPTableResponse struct {
+	XMLName     xml.Name       `xml:"urn:SAPControl ABAPGetWPTableResponse"`
+	WorkProcess []*WorkProcess `xml:"workprocess>item,omitempty" json:"workprocess>item,omitempty"`
+}
+type WorkProcess struct {
+	No      string `xml:"No,omitempty" json:"No,omitempty"`
+	Type    string `xml:"Typ,omitempty" json:"Typ,omitempty"`
+	Pid     string `xml:"Pid,omitempty" json:"Pid,omitempty"`
+	Status  string `xml:"Status,omitempty" json:"Status,omitempty"`
+	Reason  string `xml:"Reason,omitempty" json:"Reason,omitempty"`
+	Start   string `xml:"Start,omitempty" json:"Start,omitempty"`
+	Err     string `xml:"Err,omitempty" json:"Err,omitempty"`
+	Sem     string `xml:"Sem,omitempty" json:"Sem,omitempty"`
+	Cpu     string `xml:"Cpu,omitempty" json:"Cpu,omitempty"`
+	Time    string `xml:"Time,omitempty" json:"Time,omitempty"`
+	Program string `xml:"Program,omitempty" json:"Program,omitempty"`
+	Client  string `xml:"Client,omitempty" json:"Client,omitempty"`
+	User    string `xml:"User,omitempty" json:"User,omitempty"`
+	Action  string `xml:"Action,omitempty" json:"Action,omitempty"`
+	Table   string `xml:"Table,omitempty" json:"Table,omitempty"`
+}
+
 type webService struct {
 	Client *MyClient
 	//once               *sync.Once
