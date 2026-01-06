@@ -24,11 +24,13 @@ func NewSoapClient(myConfig *config.MyConfig, cacheMgr *cache.CacheManager) *MyC
 	// creates new SOAP client struct
 	// returns MyClient scruct, that contains MyConfig struct.
 	//
+	v := myConfig.Viper
 	c := &MyClient{
 		config:   myConfig,
 		cacheMgr: cacheMgr,
 		logger:   config.NewLogger("sapcontrol"),
 	}
+	c.logger.SetLevel(v.GetString("log_level"))
 	return c
 }
 
