@@ -15,7 +15,6 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/vgrusdev/sap_system_exporter/cache"
-	"github.com/vgrusdev/sap_system_exporter/collector/registry"
 	"github.com/vgrusdev/sap_system_exporter/collector/start_service"
 	"github.com/vgrusdev/sap_system_exporter/internal"
 	"github.com/vgrusdev/sap_system_exporter/internal/config"
@@ -129,16 +128,17 @@ func run() {
 	//initialize collectors
 	startServiceCollector, err := start_service.NewCollector(webService)
 	if err != nil {
-		log.Warnf("s", err)
+		log.Warnf("%v", err)
 	} else {
 		prometheus.MustRegister(startServiceCollector)
 		log.Info("Start Service collector registered")
 	}
 
-	err = registry.RegisterOptionalCollectors(webService)
-	if err != nil {
-		log.Fatalf("%s", err)
-	}
+	// VG - first run !!!
+	//err = registry.RegisterOptionalCollectors(webService)
+	//if err != nil {
+	//	log.Fatalf("%s", err)
+	//}
 
 	// if we're not in debug log level, we unregister the Go runtime metrics collector that gets registered by default
 	//if !log.IsLevelEnabled(log.DebugLevel) {
