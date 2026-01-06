@@ -223,7 +223,7 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 		fmt.Sprintf("%s/SAPControl.cgi", sapURL),
 		fmt.Sprintf("%s/sap/bc/webdynpro/sap/dba_control", sapURL),
 	}
-	var lastErr []error
+	var lastErr []string
 	for _, endpoint := range endpoints {
 		client := c.CreateSoapClient(endpoint)
 
@@ -231,17 +231,17 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 		response := &GetSystemInstanceListResponse{}
 
 		if err := client.CallContext(ctx, "GetSystemInstanceList", request, response); err != nil {
-			lastErr = append(lastErr, err)
+			lastErr = append(lastErr, fmt.Sprintf("%v", err))
 			continue
 		}
 		if len(response.Instances) == 0 {
-			lastErr = append(lastErr, fmt.Errorf("GetSystemInstanceList: no instances found at %v", endpoint))
+			lastErr = append(lastErr, fmt.Sprintf("GetSystemInstanceList: no instances found at %s", endpoint))
 			continue
 		}
 		log.Debug("Got Instancelist from endpoint %s", endpoint)
 		return response, nil
 	}
-	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %v", lastErr)
+	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %v", strings.Join((lastErr), ","))
 }
 
 // implements WebService.GetInstanceProperties(context.Context, string)
