@@ -14,17 +14,18 @@ import (
 	"github.com/vgrusdev/sap_system_exporter/internal/config"
 
 	"github.com/vgrusdev/promtail-client/promtail"
-
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 )
 
 func NewLokiClient(myConfig *config.MyConfig) promtail.Client {
 
 	v := myConfig.Viper
+	log := config.NewLogger("sapcontrol-loki")
+	log.SetLevel(v.GetString("log_level"))
 
 	lokiURL := v.GetString("loki_url")
 	if lokiURL == "" {
-		log.Infoln("loki_url option is empty, will not use LOKI to push Alerts")
+		log.Info("loki_url option is empty, will not use LOKI to push Alerts")
 		return nil
 	}
 	bw := v.GetInt("loki_batch_wait")
@@ -58,7 +59,7 @@ func NewLokiClient(myConfig *config.MyConfig) promtail.Client {
 	c, err := promtail.NewClientProto(&cfg)
 	//c, err := promtail.NewClientJson(&cfg)
 	if err != nil {
-		log.Errorf("Will not use LOKI to push Alerts. Client Create Error: %s\n", err)
+		log.Errorf("Will not use LOKI to push Alerts. Client Create Error: %s", err)
 		return nil
 	}
 	return c
