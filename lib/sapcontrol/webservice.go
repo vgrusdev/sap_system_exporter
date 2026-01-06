@@ -9,6 +9,7 @@ import (
 
 	//"github.com/hooklift/gowsdl/soap"
 	"github.com/pkg/errors"
+	//log "github.com/sirupsen/logrus"
 	"github.com/vgrusdev/promtail-client/promtail"
 )
 
@@ -214,6 +215,7 @@ func (s *webService) GetLokiClient() promtail.Client {
 func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInstanceListResponse, error) {
 
 	c := s.Client
+	log := s.Client.logger
 	sapURL := c.config.Viper.GetString("sap_control_url")
 
 	endpoints := []string{
@@ -221,7 +223,7 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 		fmt.Sprintf("%s/SAPControl.cgi", sapURL),
 		fmt.Sprintf("%s/sap/bc/webdynpro/sap/dba_control", sapURL),
 	}
-	var lastErr error
+	var lastErr []error
 	for _, endpoint := range endpoints {
 		client := c.CreateSoapClient(endpoint)
 
@@ -229,13 +231,14 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 		response := &GetSystemInstanceListResponse{}
 
 		if err := client.CallContext(ctx, "GetSystemInstanceList", request, response); err != nil {
-			lastErr = err
+			lastErr = append(lastErr, err)
 			continue
 		}
 		if len(response.Instances) == 0 {
-			lastErr = fmt.Errorf("GetSystemInstanceList: no instances found at %s", endpoint)
+			lastErr = append(lastErr, fmt.Errorf("GetSystemInstanceList: no instances found at %s", endpoint))
 			continue
 		}
+		log.Debug("Got Instancelist from endpoint %s", endpoint)
 		return response, nil
 	}
 	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %v", lastErr)
