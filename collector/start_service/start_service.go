@@ -107,13 +107,20 @@ func (c *startServiceCollector) recordProcesses(ctx context.Context, ch chan<- p
 	}
 	log.Debugf("recordProcesses: Instances in the list: %d", len(instanceInfo))
 
-	processes := make(map[sapcontrol.STATECOLOR]int)
-	processes[sapcontrol.STATECOLOR_GRAY] = 0
-	processes[sapcontrol.STATECOLOR_GREEN] = 0
-	processes[sapcontrol.STATECOLOR_YELLOW] = 0
-	processes[sapcontrol.STATECOLOR_RED] = 0
-
 	for _, instance := range instanceInfo {
+
+		//processes := make(map[sapcontrol.STATECOLOR]int)
+		//processes[sapcontrol.STATECOLOR_GRAY] = 0
+		//processes[sapcontrol.STATECOLOR_GREEN] = 0
+		//processes[sapcontrol.STATECOLOR_YELLOW] = 0
+		//processes[sapcontrol.STATECOLOR_RED] = 0
+
+		processes := map[sapcontrol.STATECOLOR]int{
+			sapcontrol.STATECOLOR_GRAY:   0,
+			sapcontrol.STATECOLOR_GREEN:  0,
+			sapcontrol.STATECOLOR_YELLOW: 0,
+			sapcontrol.STATECOLOR_RED:    0,
+		}
 
 		url := instance.Endpoint
 		commonLabels := []string{
@@ -172,13 +179,14 @@ func (c *startServiceCollector) recordProcessesPerInstance(ctx context.Context, 
 	}
 	log.Debugf("recordProcessesPerInstance: Instances in the list: %d", len(instanceInfo))
 
-	processes := make(map[sapcontrol.STATECOLOR]int)
-	processes[sapcontrol.STATECOLOR_GRAY] = 0
-	processes[sapcontrol.STATECOLOR_GREEN] = 0
-	processes[sapcontrol.STATECOLOR_YELLOW] = 0
-	processes[sapcontrol.STATECOLOR_RED] = 0
-
 	for _, instance := range instanceInfo {
+
+		processes := make(map[sapcontrol.STATECOLOR]int)
+		processes[sapcontrol.STATECOLOR_GRAY] = 0
+		processes[sapcontrol.STATECOLOR_GREEN] = 0
+		processes[sapcontrol.STATECOLOR_YELLOW] = 0
+		processes[sapcontrol.STATECOLOR_RED] = 0
+
 		url := instance.Endpoint
 		commonLabels := []string{
 			instance.Name,
