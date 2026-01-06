@@ -4,13 +4,17 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/vgrusdev/sap_system_exporter/internal/config"
 )
 
 // CacheManager manages concurrent access to cached data
 type CacheManager struct {
-	mu    sync.RWMutex
-	cache map[string]*CacheItem
-	stats CacheStats
+	mu         sync.RWMutex
+	cache      map[string]*CacheItem
+	defaultTTL time.Duration
+	stats      CacheStats
+	logger     *config.Logger
 }
 
 // CacheItem represents a single cached item
@@ -31,10 +35,20 @@ type CacheStats struct {
 
 // NewCacheManager creates a new cache manager
 // func NewCacheManager(cleanupInterval time.Duration) *CacheManager {
-func NewCacheManager(cleanupInterval time.Duration) *CacheManager {
-	cm := &CacheManager{
-		cache: make(map[string]*CacheItem),
+func NewCacheManager(myConfig *config.MyConfig) *CacheManager {
+
+	v := myConfig.Viper
+
+	d := v.GetDuration("sap_cache_ttl")
+	if d == 0 {
+		d = 30 * time.Second
 	}
+	cm := &CacheManager{
+		cache:      make(map[string]*CacheItem),
+		defaultTTL: d,
+		logger:     config.NewLogger("cache"),
+	}
+	cm.logger.SetLevel(v.GetString("log_level"))
 	return cm
 }
 
@@ -70,8 +84,11 @@ func (cm *CacheManager) setInternal(key string, value interface{}, ttl time.Dura
 // GetOrSet retrieves a value or sets it if not found
 func (cm *CacheManager) GetOrSet(key string, setFunc func() (interface{}, time.Duration)) interface{} {
 
+	log := cm.logger
+
 	// Try to get existing value
 	if val, found := cm.getInternal(key); found {
+		log.Debugf("Cache Hits for key %s", key)
 		atomic.AddInt64(&cm.stats.Hits, 1)
 		return val
 	}
@@ -82,6 +99,7 @@ func (cm *CacheManager) GetOrSet(key string, setFunc func() (interface{}, time.D
 	// Double-check after acquiring lock, somebody could refresh while Lock waiting.
 	if item, found := cm.cache[key]; found {
 		if item.Expiration == 0 || item.Expiration > time.Now().UnixNano() {
+			log.Debugf("Cache Hits for key %s", key)
 			atomic.AddInt64(&cm.stats.Hits, 1)
 			return item.Value
 		}
@@ -90,6 +108,7 @@ func (cm *CacheManager) GetOrSet(key string, setFunc func() (interface{}, time.D
 		atomic.AddInt64(&cm.stats.Expired, 1)
 	}
 
+	log.Debugf("Cache Misses for key %s", key)
 	// Call set function to get value
 	value, ttl := setFunc()
 	cm.setInternal(key, value, ttl)

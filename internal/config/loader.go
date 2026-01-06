@@ -40,6 +40,6 @@ func loadConfigurationFromFile(v *viper.Viper, log *Logger) error {
 			}
 		}
 	}
-	log.Info("Using config file: %s", v.ConfigFileUsed())
+	log.Infof("Using config file: %s", v.ConfigFileUsed())
 	return nil
 }

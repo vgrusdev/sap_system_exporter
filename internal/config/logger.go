@@ -21,18 +21,20 @@ const (
 )
 
 func NewLogger(name string) *Logger {
-	fmt.Printf("New Logger name: %s", name)
-	return &Logger{
+	l := &Logger{
 		logger: log.New(os.Stdout, "", log.Ldate|log.Ltime),
 		name:   name,
 		level:  LevelInfo,
 	}
+	l.log("DEBUG", fmt.Sprintf("New Logger created with name: %s", name))
+	return l
 }
 
 func (l *Logger) SetLevel(level string) {
-	fmt.Printf("logger set level %s", level)
+
 	switch strings.ToLower(level) {
 	case "debug":
+		l.log("DEBUG", fmt.Sprintf("Logger set level %s for name%s", level, l.name))
 		l.level = LevelDebug
 	case "info":
 		l.level = LevelInfo

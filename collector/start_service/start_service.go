@@ -73,7 +73,7 @@ func (c *startServiceCollector) Collect(ch chan<- prometheus.Metric) {
 
 func (c *startServiceCollector) recordInstances(ctx context.Context, ch chan<- prometheus.Metric) error {
 	log := c.logger
-	log.Debug("recordInstances collecting")
+	log.Debug("  recordInstances collecting")
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {

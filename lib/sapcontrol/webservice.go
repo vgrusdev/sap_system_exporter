@@ -238,7 +238,7 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 			lastErr = append(lastErr, fmt.Sprintf("no instances found at %s", endpoint))
 			continue
 		}
-		log.Debug("Got Instancelist from endpoint %s", endpoint)
+		log.Debugf("Got Instancelist from endpoint %s", endpoint)
 		return response, nil
 	}
 	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %s.", strings.Join((lastErr), ", "))

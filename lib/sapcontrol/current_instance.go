@@ -27,6 +27,7 @@ func (s *webService) GetCachedInstanceList(ctx context.Context) ([]InstanceInfo,
 	cacheMgr := client.cacheMgr
 	log := client.logger
 
+	log.Debug("Starting webService.GetCachedInstanceList")
 	// Call cache function with callback in case of cache missed
 	value := cacheMgr.GetOrSet("InstanceInfo",
 		func() (interface{}, time.Duration) {
@@ -52,7 +53,7 @@ func (s *webService) GetCachedInstanceList(ctx context.Context) ([]InstanceInfo,
 func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error) {
 
 	log := s.Client.logger
-	log.Debug("Calling GetAllInstances func")
+	log.Debug("Starting GetAllInstances func (cache callback)")
 
 	v := s.Client.config.Viper
 	useHTTPS := v.GetBool("sap_use_ssl")

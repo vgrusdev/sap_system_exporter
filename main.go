@@ -86,7 +86,8 @@ func run() {
 	// Initialize cache manager.
 	// Cache manager has ReadOrSet() func. that reads from cache or
 	// calls call-back func to refresh cache
-	cacheMgr := cache.NewCacheManager(v.GetDuration("sap_cache_ttl"))
+	//cacheMgr := cache.NewCacheManager(v.GetDuration("sap_cache_ttl"))
+	cacheMgr := cache.NewCacheManager(myConfig)
 
 	// Initialize Soapclient structs.
 	// soapclient has all needed to perform soap calls
