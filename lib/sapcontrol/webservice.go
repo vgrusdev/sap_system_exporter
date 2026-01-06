@@ -35,6 +35,7 @@ type WebService interface {
 	/* Custom method to get the current instance data. This is not something natively exposed by the webservice. */
 	GetCurrentInstance(context.Context, string) (*InstanceProperties, error)
 	GetCachedInstanceList(context.Context) ([]InstanceInfo, error)
+	GetCachedProcessList(context.Context, string) ([]ProcessInfo, error)
 
 	GetAlerts(context.Context, string) (*GetAlertsResponse, error)
 

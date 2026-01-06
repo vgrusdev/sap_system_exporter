@@ -122,12 +122,13 @@ func (c *startServiceCollector) recordProcesses(ctx context.Context, ch chan<- p
 			instance.SID,
 			instance.Hostname,
 		}
-		processList, err := c.webService.GetProcessList(ctx, url)
+		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
+		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
 			log.Warnf("GetProcessList error: %s", err)
 			continue
 		}
-		for _, process := range processList.Processes {
+		for _, process := range processInfo {
 
 			if _, ok := processes[process.Dispstatus]; ok {
 				processes[process.Dispstatus] += 1
@@ -185,12 +186,13 @@ func (c *startServiceCollector) recordProcessesPerInstance(ctx context.Context, 
 			instance.SID,
 			instance.Hostname,
 		}
-		processList, err := c.webService.GetProcessList(ctx, url)
+		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
+		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
 			log.Warnf("GetProcessList error: %s", err)
 			continue
 		}
-		for _, process := range processList.Processes {
+		for _, process := range processInfo {
 			if _, ok := processes[process.Dispstatus]; ok {
 				processes[process.Dispstatus] += 1
 			}
