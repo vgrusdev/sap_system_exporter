@@ -1,24 +1,32 @@
 package dispatcher
 
 import (
+	"context"
 	"strconv"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/vgrusdev/sap_system_exporter/collector"
+	"github.com/vgrusdev/sap_system_exporter/internal/config"
 	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 )
+
+type dispatcherCollector struct {
+	collector.DefaultCollector
+	webService sapcontrol.WebService
+	logger     *config.Logger
+}
 
 func NewCollector(webService sapcontrol.WebService) (*dispatcherCollector, error) {
 
 	c := &dispatcherCollector{
 		collector.NewDefaultCollector("dispatcher"),
 		webService,
+		config.NewLogger("dispatcher"),
 	}
 
 	c.SetDescriptor("queue_now", "Work process current queue length", []string{"type", "instance_name", "instance_number", "SID", "instance_hostname"})
@@ -30,60 +38,41 @@ func NewCollector(webService sapcontrol.WebService) (*dispatcherCollector, error
 	return c, nil
 }
 
-type dispatcherCollector struct {
-	collector.DefaultCollector
-	webService sapcontrol.WebService
-}
-
 func (c *dispatcherCollector) Collect(ch chan<- prometheus.Metric) {
-	log.Debugln("Collecting Dispatcher metrics")
+	log := c.logger
+	log.Debug("Collecting Dispatcher metrics")
 
-	err := c.recordWorkProcessQueueStats(ch)
+	v := c.webService.GetMyClient().GetMyConfig().Viper
+	timeout := v.GetDuration("scrape_timeout")
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err := c.recordWorkProcessQueueStats(ctx, ch)
 	if err != nil {
-		log.Warnf("Dispatcher Collector scrape failed: %s", err)
+		log.Warnf("Dispatcher Collector scrape error: %s", err)
 		return
 	}
 }
 
-func (c *dispatcherCollector) recordWorkProcessQueueStats(ch chan<- prometheus.Metric) error {
-
+func (c *dispatcherCollector) recordWorkProcessQueueStats(ctx context.Context, ch chan<- prometheus.Metric) error {
 	// VG ++    loop on instances
-	log.Debugln("SAP WorkProcessQueueStats collecting")
-	instanceList, err := c.webService.GetSystemInstanceList()
+	log := c.logger
+	log.Debug("recordWorkProcessQueueStats collecting")
+
+	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
+		return errors.Wrap(err, "recordWorkProcessQueueStats collector error")
 	}
+	log.Debugf("recordWorkProcessQueueStats: Instances in the list: %d", len(instanceInfo))
 
-	log.Debugf("WorkProcessesQueueStats: Instances in the list: %d", len(instanceList.Instances) )
+	for _, instance := range instanceInfo {
 
-	client := c.webService.GetMyClient()
-	useHTTPS := client.Config.UseHTTPS()
-	myConfig, err := client.Config.Copy()
-	if err != nil {
-		return errors.Wrap(err, "SAPControl config Copy error")
-	}
-
-	for _, instance := range instanceList.Instances {
-
-		url := ""
-		if useHTTPS == true {
-			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
-		} else {
-			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
-		}
-
-		err := myConfig.SetURL(url)
-		if err != nil {
-			log.Warnf("SAPControl URL error (%s): %s", url, err)
-			continue
-		}
-		myClient := sapcontrol.NewSoapClient(myConfig)
-		myWebService := sapcontrol.NewWebService(myClient)
+		url := instance.Endpoint
 
 		dispatcherFound := false
-		processList, err := myWebService.GetProcessList()
+		processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
-			return errors.Wrap(err, "SAPControl web service error")
+			return errors.Wrap(err, "GetProcessList error")
 		}
 
 		for _, process := range processList.Processes {
@@ -97,21 +86,16 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ch chan<- prometheus.M
 			continue
 		}
 
-		currentSapInstance, err := myWebService.GetCurrentInstance()
-		if err != nil {
-			log.Warnf("SAPControl web service error: %s", err)
-			continue
-		}
 		commonLabels := []string{
-			currentSapInstance.Name,
-			strconv.Itoa(int(currentSapInstance.Number)),
-			currentSapInstance.SID,
-			currentSapInstance.Hostname,
+			instance.Name,
+			strconv.Itoa(int(instance.InstanceNr)),
+			instance.SID,
+			instance.Hostname,
 		}
 
-		queueStatistic, err := myWebService.GetQueueStatistic()
+		queueStatistic, err := c.webService.GetQueueStatistic(ctx, url)
 		if err != nil {
-			return errors.Wrap(err, "SAPControl web service error")
+			return errors.Wrap(err, "GetQueueStatistic error")
 		}
 
 		// for each work queue, we record a different line for each stat of that queue, with the type as a common label

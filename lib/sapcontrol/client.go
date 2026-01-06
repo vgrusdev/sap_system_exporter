@@ -16,17 +16,18 @@ import (
 type MyClient struct {
 	//SoapClient *soap.Client
 	config   *config.MyConfig
+	cacheMgr *cache.CacheManager
 	logger   *config.Logger
-	cacheMgr *cache.Manager
 }
 
-func NewSoapClient(myConfig *config.MyConfig) *MyClient {
+func NewSoapClient(myConfig *config.MyConfig, cacheMgr *cache.CacheManager) *MyClient {
 	// creates new SOAP client struct
 	// returns MyClient scruct, that contains MyConfig struct.
 	//
 	c := &MyClient{
-		config: myConfig,
-		logger: config.NewLogger("sapcontrol"),
+		config:   myConfig,
+		cacheMgr: cacheMgr,
+		logger:   config.NewLogger("sapcontrol"),
 	}
 	return c
 }
@@ -45,7 +46,6 @@ func (c *MyClient) CreateSoapClient(endpoint string) *soap.Client {
 			v.GetString("sap_control_password"),
 		),
 	}
-
 	if v.GetBool("sap_use_ssl") {
 		tlsSkipVfy := false
 		if strings.ToUpper(v.GetString("tls_skip_verify")) == "YES" {
@@ -60,4 +60,7 @@ func (c *MyClient) CreateSoapClient(endpoint string) *soap.Client {
 	client := soap.NewClient(endpoint, opts...)
 
 	return client
+}
+func (c *MyClient) GetMyConfig() *config.MyConfig {
+	return c.config
 }

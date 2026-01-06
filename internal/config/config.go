@@ -173,6 +173,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("tls_skip_verify", false)
 	v.SetDefault("sap_control_user", "")
 	v.SetDefault("sap_control_password", "")
+	v.SetDefault("sap_cache_ttl", "30s")
 	v.SetDefault("send_alerts_to_prom", false)
 	v.SetDefault("loki_url", "")
 	v.SetDefault("loki_name", "sap_alerts")

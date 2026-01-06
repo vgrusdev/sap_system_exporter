@@ -12,10 +12,11 @@ import (
 )
 
 type InstanceInfo struct { // this will keep all Instance properties
-	SAPInstance        // Embedded base instance
-	Name        string `json:"instance_name"`
-	SID         string `json:"SID"`
-	Endpoint    string `json:"endpoint"`
+	SAPInstance         // Embedded base instance
+	Name        string  `json:"instance_name"`
+	SID         string  `json:"SID"`
+	Endpoint    string  `json:"endpoint"`
+	Status      float64 `json:"status"`
 }
 
 // Returns list of All instances properties, uses memory cache to reduce system calls.
@@ -95,6 +96,11 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 			},
 			Endpoint: url,
 		}
+		status, err := StateColorToFloat(instance.Dispstatus)
+		if err != nil {
+			log.Warnf("Instance Url %s: %s", url, err)
+		}
+		singleInstance.Status = status
 
 		wg.Add(1)
 		go func() {

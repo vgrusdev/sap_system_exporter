@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"context"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -59,7 +60,7 @@ func (c *DefaultCollector) makeMetric(name string, value float64, valueType prom
 }
 
 // Run multiple metric recording functions concurrently
-func RecordConcurrently(recorders []func(ch chan<- prometheus.Metric) error, ch chan<- prometheus.Metric) []error {
+func RecordConcurrently(ctx context.Context, recorders []func(ctx context.Context, ch chan<- prometheus.Metric) error, ch chan<- prometheus.Metric) []error {
 	results := make(chan error, len(recorders))
 	var errs []error
 	var wg sync.WaitGroup
@@ -68,10 +69,10 @@ func RecordConcurrently(recorders []func(ch chan<- prometheus.Metric) error, ch 
 	// A Waitgroup is used to later wait for all of them.
 	for _, recorder := range recorders {
 		wg.Add(1)
-		go func(recorder func(ch chan<- prometheus.Metric) error, wg *sync.WaitGroup) {
+		go func(ctx context.Context, recorder func(ctx context.Context, ch chan<- prometheus.Metric) error, wg *sync.WaitGroup) {
 			defer wg.Done()
-			results <- recorder(ch)
-		}(recorder, &wg)
+			results <- recorder(ctx, ch)
+		}(ctx, recorder, &wg)
 	}
 
 	// As soon as all the goroutines in the Waitgroup are done, close the channel where the errors are sent

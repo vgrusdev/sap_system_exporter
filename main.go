@@ -6,12 +6,14 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/pkg/errors"
+	//"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
+
+	//log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
+
 	"github.com/vgrusdev/sap_system_exporter/cache"
 	"github.com/vgrusdev/sap_system_exporter/collector/registry"
 	"github.com/vgrusdev/sap_system_exporter/collector/start_service"
@@ -63,7 +65,7 @@ func run() {
 	var err error
 
 	// Initialize logger
-	logger := config.NewLogger("main")
+	log := config.NewLogger("main")
 
 	myConfig, err := config.New(flag.CommandLine)
 	if err != nil {
@@ -71,9 +73,9 @@ func run() {
 	}
 	v := myConfig.Viper
 
-	logger.SetLevel(v.GetString("log_level"))
+	log.SetLevel(v.GetString("log_level"))
 	//logger.Debug("Config %s", )
-	logger.Info("Starting SAP System Exporter",
+	log.Info("Starting SAP System Exporter",
 		"version", version,
 		"sap_control_url", v.GetString("sap_control_url"),
 		"loki_url", v.GetString("loki_url"),
@@ -82,16 +84,26 @@ func run() {
 		//"port", cfg.Port,
 	)
 
-	// Initialize cache manager
-	cacheMgr := cache.NewManager(cfg.CacheTTL)
+	// Initialize cache manager.
+	// Cache manager has ReadOrSet() func. that reads from cache or
+	// calls call-back func to refresh cache
+	cacheMgr := cache.NewCacheManager(v.GetDuration("sap_cache_ttl"))
 
-	myClient := sapcontrol.NewSoapClient(myConfig)
+	// Initialize Soapclient structs.
+	// soapclient has all needed to perform soap calls
+	// here we only initialise struct.
+	// to perform soap calls need to call CreateSoapClient... func with endpoint adress.
+	myClient := sapcontrol.NewSoapClient(myConfig, cacheMgr)
+
 	loki_client := sapcontrol.NewLokiClient(myConfig)
-
 	if loki_client != nil {
 		defer loki_client.Shutdown()
 	}
 
+	// Initialize webService
+	// webService has links to soapclient and lokiClient
+	// also a lot of functions to perform calls to SAP.
+	// all functions are described in webservice interface
 	webService := sapcontrol.NewWebService(myClient)
 	webService.SetLokiClient(loki_client)
 
@@ -107,16 +119,17 @@ func run() {
 	*/
 	// VG --
 
-	currentSapInstance, err := webService.GetCurrentInstance()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "SAPControl web service error"))
-	}
+	//currentSapInstance, err := webService.GetCurrentInstance()
+	//if err != nil {
+	//	log.Fatal(errors.Wrap(err, "SAPControl web service error"))
+	//}
+	//
+	//log.Infof("Monitoring SAP Instance %s", currentSapInstance)
 
-	log.Infof("Monitoring SAP Instance %s", currentSapInstance)
-
+	//initialize collectors
 	startServiceCollector, err := start_service.NewCollector(webService)
 	if err != nil {
-		log.Warn(err)
+		log.Warnf("s", err)
 	} else {
 		prometheus.MustRegister(startServiceCollector)
 		log.Info("Start Service collector registered")
@@ -124,14 +137,14 @@ func run() {
 
 	err = registry.RegisterOptionalCollectors(webService)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%s", err)
 	}
 
 	// if we're not in debug log level, we unregister the Go runtime metrics collector that gets registered by default
-	if !log.IsLevelEnabled(log.DebugLevel) {
-		// prometheus.Unregister(prometheus.NewGoCollector())
-		prometheus.Unregister(collectors.NewGoCollector())
-	}
+	//if !log.IsLevelEnabled(log.DebugLevel) {
+	// prometheus.Unregister(prometheus.NewGoCollector())
+	prometheus.Unregister(collectors.NewGoCollector())
+	//}
 
 	fullListenAddress := fmt.Sprintf("%s:%s", myConfig.Viper.Get("address"), myConfig.Viper.Get("port"))
 
@@ -139,7 +152,7 @@ func run() {
 	http.Handle("/metrics", promhttp.Handler())
 
 	log.Infof("Serving metrics on %s", fullListenAddress)
-	log.Fatal(http.ListenAndServe(fullListenAddress, nil))
+	log.Fatalf("%s", http.ListenAndServe(fullListenAddress, nil))
 }
 
 func showHelp() {

@@ -36,6 +36,7 @@ sap_control_user: ""
 sap_control_password: ""
 #
 send_alerts_to_prom: "yes""
+alert_samples_max_age: "1d"
 # Loki section.
 # sap-alerts will be written to the LOKI server in case of loki-url is not empty string.
 #

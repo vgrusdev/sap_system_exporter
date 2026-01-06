@@ -1,24 +1,32 @@
 package enqueue_server
 
 import (
+	"context"
 	"strconv"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/vgrusdev/sap_system_exporter/collector"
+	"github.com/vgrusdev/sap_system_exporter/internal/config"
 	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 )
+
+type enqueueServerCollector struct {
+	collector.DefaultCollector
+	webService sapcontrol.WebService
+	logger     *config.Logger
+}
 
 func NewCollector(webService sapcontrol.WebService) (*enqueueServerCollector, error) {
 
 	c := &enqueueServerCollector{
 		collector.NewDefaultCollector("enqueue_server"),
 		webService,
+		config.NewLogger("enqueue_server"),
 	}
 
 	c.SetDescriptor("owner_now", "Current number of lock owners in the lock table", []string{"instance_name", "instance_number", "SID", "instance_hostname"})
@@ -52,59 +60,40 @@ func NewCollector(webService sapcontrol.WebService) (*enqueueServerCollector, er
 	return c, nil
 }
 
-type enqueueServerCollector struct {
-	collector.DefaultCollector
-	webService sapcontrol.WebService
-}
-
 func (c *enqueueServerCollector) Collect(ch chan<- prometheus.Metric) {
-	log.Debugln("Collecting Enqueue Server metrics")
+	log := c.logger
+	log.Debug("Collecting Enqueue Server metrics")
 
-	err := c.recordEnqStats(ch)
+	v := c.webService.GetMyClient().GetMyConfig().Viper
+	timeout := v.GetDuration("scrape_timeout")
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err := c.recordEnqStats(ctx, ch)
 	if err != nil {
-		log.Warnf("Enqueue Server Collector scrape failed: %s", err)
+		log.Warnf("Enqueue Server Collector scrape error: %s", err)
 	}
 }
 
-func (c *enqueueServerCollector) recordEnqStats(ch chan<- prometheus.Metric) error {
-
+func (c *enqueueServerCollector) recordEnqStats(ctx context.Context, ch chan<- prometheus.Metric) error {
 	// VG ++    loop on instances
-	log.Debugln("SAP EnqStats collecting")
-	instanceList, err := c.webService.GetSystemInstanceList()
+	log := c.logger
+	log.Debug("recordEnqStats collecting")
+
+	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "SAPControl web service error")
+		return errors.Wrap(err, "recordEnqStats collector error")
 	}
-	
-	log.Debugf("EnqStats: Instances in the list: %d", len(instanceList.Instances) )
-	
-	client := c.webService.GetMyClient()
-	useHTTPS := client.Config.UseHTTPS()
-	myConfig, err := client.Config.Copy()
-	if err != nil {
-		return errors.Wrap(err, "SAPControl config Copy error")
-	}
-	
-	for _, instance := range instanceList.Instances {
-	
-		url := ""
-		if useHTTPS == true {
-			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
-		} else {
-			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
-		}
-	
-		err := myConfig.SetURL(url)
-		if err != nil {
-			log.Warnf("SAPControl URL error (%s): %s", url, err)
-			continue
-		}
-		myClient := sapcontrol.NewSoapClient(myConfig)
-		myWebService := sapcontrol.NewWebService(myClient)
+	log.Debugf("recordEnqStats: Instances in the list: %d", len(instanceInfo))
+
+	for _, instance := range instanceInfo {
+
+		url := instance.Endpoint
 
 		enqueueFound := false
-		processList, err := myWebService.GetProcessList()
+		processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
-			return errors.Wrap(err, "SAPControl web service error")
+			return errors.Wrap(err, "GetProcessList error")
 		}
 
 		for _, process := range processList.Processes {
@@ -118,21 +107,16 @@ func (c *enqueueServerCollector) recordEnqStats(ch chan<- prometheus.Metric) err
 			continue
 		}
 
-		enqStatistic, err := myWebService.EnqGetStatistic()
+		enqStatistic, err := c.webService.EnqGetStatistic(ctx, url)
 		if err != nil {
-			return errors.Wrap(err, "SAPControl web service error")
-		}
-
-		currentSapInstance, err := myWebService.GetCurrentInstance()
-		if err != nil {
-			return errors.Wrap(err, "SAPControl web service error")
+			return errors.Wrap(err, "EnqGetStatistic error")
 		}
 
 		labels := []string{
-			currentSapInstance.Name,
-			strconv.Itoa(int(currentSapInstance.Number)),
-			currentSapInstance.SID,
-			currentSapInstance.Hostname,
+			instance.Name,
+			strconv.Itoa(int(instance.InstanceNr)),
+			instance.SID,
+			instance.Hostname,
 		}
 
 		ch <- c.MakeGaugeMetric("owner_now", float64(enqStatistic.OwnerNow), labels...)
@@ -141,7 +125,7 @@ func (c *enqueueServerCollector) recordEnqStats(ch chan<- prometheus.Metric) err
 
 		ownerState, err := sapcontrol.StateColorToFloat(enqStatistic.OwnerState)
 		if err != nil {
-			log.Warnf("Could not record owner_state metric: %s", err)
+			log.Warnf("Incorrect state for owner_state metric: %s", err)
 		} else {
 			ch <- c.MakeGaugeMetric("owner_state", ownerState, labels...)
 		}
@@ -152,7 +136,7 @@ func (c *enqueueServerCollector) recordEnqStats(ch chan<- prometheus.Metric) err
 
 		argumentsState, err := sapcontrol.StateColorToFloat(enqStatistic.ArgumentsState)
 		if err != nil {
-			log.Warnf("Could not record arguments_state metric: %s", err)
+			log.Warnf("Incorrect state for arguments_state metric: %s", err)
 		} else {
 			ch <- c.MakeGaugeMetric("arguments_state", argumentsState, labels...)
 		}
@@ -163,7 +147,7 @@ func (c *enqueueServerCollector) recordEnqStats(ch chan<- prometheus.Metric) err
 
 		locksState, err := sapcontrol.StateColorToFloat(enqStatistic.LocksState)
 		if err != nil {
-			log.Warnf("Could not record locks_state metric: %s", err)
+			log.Warnf("Incorrect state for locks_state metric: %s", err)
 		} else {
 			ch <- c.MakeGaugeMetric("locks_state", locksState, labels...)
 		}

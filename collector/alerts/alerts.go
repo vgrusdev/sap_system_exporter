@@ -1,48 +1,58 @@
 package alerts
 
 import (
-	"fmt"
+	"context"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/vgrusdev/promtail-client/promtail"
 	"github.com/vgrusdev/sap_system_exporter/collector"
+	"github.com/vgrusdev/sap_system_exporter/internal/config"
 	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 )
+
+type alertsCollector struct {
+	collector.DefaultCollector
+	webService sapcontrol.WebService
+	logger     *config.Logger
+}
 
 func NewCollector(webService sapcontrol.WebService) (*alertsCollector, error) {
 
 	c := &alertsCollector{
 		collector.NewDefaultCollector("alerts"),
 		webService,
+		config.NewLogger("enqueue_server"),
 	}
 
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Tid", "Aid"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "Aluniqnum"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"instance_name", "instance_number", "SID", "instance_hostname", "Object", "Attribute", "Description", "ATime", "State"})
 	//c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Message", "ATime", "Level", "instance_name", "instance_number", "SID", "instance_hostname"})
-	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Message", "ATime", "State", "instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("Alert", "SAP System open Alerts", []string{"Object", "Attribute", "Message", "ATime", "State",
+		"instance_name", "instance_number", "SID", "instance_hostname"})
 
 	return c, nil
 }
 
-type alertsCollector struct {
-	collector.DefaultCollector
-	webService sapcontrol.WebService
-}
-
 func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
-	log.Debugln("Collecting Alerts")
+	log := c.logger
+	log.Debug("Collecting Alerts")
 
-	err := c.recordAlerts(ch)
+	v := c.webService.GetMyClient().GetMyConfig().Viper
+	timeout := v.GetDuration("scrape_timeout")
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err := c.recordAlerts(ctx, ch)
 	if err != nil {
-		log.Warnf("Alerts Collector scrape failed: %s", err)
+		log.Warnf("Alerts Collector scrape уккщк: %s", err)
 		return
 	}
 }
@@ -66,35 +76,32 @@ func labelSetFromArrays(keys []string, values []string) (map[string]string, erro
 	return m, nil
 }
 
-func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
-
+func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus.Metric) error {
 	// VG ++    loop on instances
-	log.Debugln("SAP Alerts collecting")
-	instanceList, err := c.webService.GetSystemInstanceList()
-	if err != nil {
-		return errors.Wrap(err, "SAPControl web service Alerts error")
-	}
+	log := c.logger
+	log.Debug("recordAlerts collecting")
 
-	log.Debugf("Alerts: Instances in the list: %d", len(instanceList.Instances))
-
-	client := c.webService.GetMyClient()
-	useHTTPS := client.Config.UseHTTPS()
-	myConfig, err := client.Config.Copy()
+	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "SAPControl config Copy error")
+		return errors.Wrap(err, "recordEnqStats collector error")
 	}
-	send_to_prom := client.Config.Viper.GetBool("send_alerts_to_prom")            // send_alerts_to_prom = bool in config file
-	samples_max_age_str := client.Config.Viper.GetString("alert_samples_max_age") // Oldest accespted timestamp for alert, golang Duration string, to avoid errors/wrnings in Loki
+	log.Debugf("recordAlerts: Instances in the list: %d", len(instanceInfo))
+
+	v := c.webService.GetMyClient().GetMyConfig().Viper
+
+	send_to_prom := v.GetBool("send_alerts_to_prom") // send_alerts_to_prom = bool in config file
+	//samples_max_age_str := v.GetString("alert_samples_max_age") // Oldest accespted timestamp for alert, golang Duration string, to avoid errors/wrnings in Loki
 	var samples_max_age time.Duration
-	if samples_max_age_str == "" {
-		samples_max_age = 0 * time.Second
-	} else {
-		samples_max_age, _ = time.ParseDuration(samples_max_age_str)
-	}
+	//if samples_max_age_str == "" {
+	//	samples_max_age = 0 * time.Second
+	//} else {
+	//	samples_max_age, _ = time.ParseDuration(samples_max_age_str)
+	//}
+	samples_max_age = v.GetDuration("alert_samples_max_age")
 	if send_to_prom {
-		log.Debugln("Will send alerts to prom")
+		log.Debug("Will send Alerts to Prom")
 	} else {
-		log.Debugln("Will not send Alerts to Prom")
+		log.Debug("Will not send Alerts to Prom")
 	}
 	const timeFormat = "2006 01 02 15:04:05"
 	var labelNames []string
@@ -115,37 +122,20 @@ func (c *alertsCollector) recordAlerts(ch chan<- prometheus.Metric) error {
 		timeLocation = loki_client.GetLocation()
 	}
 
-	for _, instance := range instanceList.Instances {
+	for _, instance := range instanceInfo {
 
-		url := ""
-		if useHTTPS {
-			url = fmt.Sprintf("https://%s:%d", instance.Hostname, instance.HttpsPort)
-		} else {
-			url = fmt.Sprintf("http://%s:%d", instance.Hostname, instance.HttpPort)
-		}
-		err := myConfig.SetURL(url)
-		if err != nil {
-			log.Warnf("SAPControl URL error (%s): %s", url, err)
-			continue
-		}
-		myClient := sapcontrol.NewSoapClient(myConfig)
-		myWebService := sapcontrol.NewWebService(myClient)
+		url := instance.Endpoint
 
-		currentSapInstance, err := myWebService.GetCurrentInstance()
-		if err != nil {
-			log.Warnf("SAPControl web service error: %s", err)
-			continue
-		}
 		commonLabels := []string{
-			currentSapInstance.Name,
-			strconv.Itoa(int(currentSapInstance.Number)),
-			currentSapInstance.SID,
-			currentSapInstance.Hostname,
+			instance.Name,
+			strconv.Itoa(int(instance.InstanceNr)),
+			instance.SID,
+			instance.Hostname,
 		}
 
-		alertList, err := myWebService.GetAlerts()
+		alertList, err := c.webService.GetAlerts(ctx, url)
 		if err != nil {
-			log.Warnf("SAPControl web service GetAlerts error: %s", err)
+			log.Warnf("GetAlerts error: %s", err)
 			continue
 		}
 
