@@ -9,6 +9,7 @@ import (
 	"github.com/vgrusdev/sap_system_exporter/collector/alerts"
 	"github.com/vgrusdev/sap_system_exporter/collector/dispatcher"
 	"github.com/vgrusdev/sap_system_exporter/collector/enqueue_server"
+	"github.com/vgrusdev/sap_system_exporter/collector/workprocess"
 	"github.com/vgrusdev/sap_system_exporter/internal/config"
 	"github.com/vgrusdev/sap_system_exporter/lib/sapcontrol"
 	//log "github.com/sirupsen/logrus"
@@ -34,6 +35,14 @@ func RegisterOptionalCollectors(webService sapcontrol.WebService) error {
 	} else {
 		prometheus.MustRegister(dispatcherCollector)
 		log.Info("Dispatcher optional collector registered")
+	}
+
+	workprocessCollector, err := workprocess.NewCollector(webService)
+	if err != nil {
+		return errors.Wrap(err, "error registering WorkProcess collector")
+	} else {
+		prometheus.MustRegister(workprocessCollector)
+		log.Info("WorkProcess optional collector registered")
 	}
 
 	alertsCollector, err := alerts.NewCollector(webService)

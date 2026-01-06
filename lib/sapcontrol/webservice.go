@@ -38,6 +38,7 @@ type WebService interface {
 	GetCachedProcessList(context.Context, string) ([]ProcessInfo, error)
 
 	GetAlerts(context.Context, string) (*GetAlertsResponse, error)
+	ABAPGetWPTable(context.Context, string) (*ABAPGetWPTableResponse, error)
 
 	GetMyClient() *MyClient
 	SetLokiClient(promtail.Client)
@@ -330,6 +331,22 @@ func (s *webService) GetQueueStatistic(ctx context.Context, endpoint string) (*G
 	err := client.CallContext(ctx, "GetQueueStatistic", request, response)
 	if err != nil {
 		return nil, fmt.Errorf("GetQueueStatistic failed, endpoint=%s, err=%v", endpoint, err)
+	}
+	return response, nil
+}
+
+// implements WebService.GetQueueStatistic(context.Context, string)
+func (s *webService) ABAPGetWPTable(ctx context.Context, endpoint string) (*ABAPGetWPTableResponse, error) {
+	c := s.Client
+	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	client := c.CreateSoapClient(endpoint)
+
+	request := &ABAPGetWPTable{}
+	response := &ABAPGetWPTableResponse{}
+
+	err := client.CallContext(ctx, "ABAPGetWPTable", request, response)
+	if err != nil {
+		return nil, fmt.Errorf("ABAPGetWPTable failed, endpoint=%s, err=%v", endpoint, err)
 	}
 	return response, nil
 }
