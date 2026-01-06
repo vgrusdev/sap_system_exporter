@@ -15,6 +15,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/vgrusdev/sap_system_exporter/cache"
+	"github.com/vgrusdev/sap_system_exporter/collector/registry"
 	"github.com/vgrusdev/sap_system_exporter/collector/start_service"
 	"github.com/vgrusdev/sap_system_exporter/internal"
 	"github.com/vgrusdev/sap_system_exporter/internal/config"
@@ -135,11 +136,10 @@ func run() {
 		log.Info("Start Service collector registered")
 	}
 
-	// VG - first run !!!
-	//err = registry.RegisterOptionalCollectors(webService)
-	//if err != nil {
-	//	log.Fatalf("%s", err)
-	//}
+	err = registry.RegisterOptionalCollectors(webService)
+	if err != nil {
+		log.Fatalf("%s", err)
+	}
 
 	// if we're not in debug log level, we unregister the Go runtime metrics collector that gets registered by default
 	//if !log.IsLevelEnabled(log.DebugLevel) {

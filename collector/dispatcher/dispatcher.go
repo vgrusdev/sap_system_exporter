@@ -71,12 +71,13 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ctx context.Context, c
 		url := instance.Endpoint
 
 		dispatcherFound := false
-		processList, err := c.webService.GetProcessList(ctx, url)
+		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
+		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
 			return errors.Wrap(err, "GetProcessList error")
 		}
 
-		for _, process := range processList.Processes {
+		for _, process := range processInfo {
 			if strings.Contains(process.Name, "disp+work") {
 				dispatcherFound = true
 				break

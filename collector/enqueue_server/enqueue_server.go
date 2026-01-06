@@ -92,12 +92,14 @@ func (c *enqueueServerCollector) recordEnqStats(ctx context.Context, ch chan<- p
 		url := instance.Endpoint
 
 		enqueueFound := false
-		processList, err := c.webService.GetProcessList(ctx, url)
+		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
+		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
 			return errors.Wrap(err, "GetProcessList error")
 		}
 
-		for _, process := range processList.Processes {
+		//for _, process := range processList.Processes {
+		for _, process := range processInfo {
 			if strings.Contains(process.Name, "msg_server") {
 				enqueueFound = true
 				break
