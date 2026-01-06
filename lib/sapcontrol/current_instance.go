@@ -114,6 +114,9 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 
 			prop, err := s.GetSingleInstance(ctx, singleInstance)
 			results <- result{prop, err}
+
+			// Warmup cache for processes
+			_, _ = s.GetCachedProcessList(ctx, url)
 		}()
 	}
 	// Close channel when all goroutines are done
