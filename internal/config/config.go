@@ -32,6 +32,7 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 		Viper: v,
 	}
 	logger := NewLogger("config")
+	logger.SetLevel(v.GetString("log_level"))
 	c.logger = logger
 
 	// Viper binds pflafs (command-line flags to Viper struct)
@@ -69,7 +70,7 @@ func New(flagSet *flag.FlagSet) (*MyConfig, error) {
 	return c, nil
 }
 
-// returns an error in case the sap-control-url config value cannot be parsed as URL
+// returns an error in case the sap_control_url config value cannot be parsed as URL
 func validateSapControlUrl(v *viper.Viper, log *Logger) error {
 	sapControlUrl := v.GetString("sap_control_url")
 	hostDomain := v.GetString("host_domain")

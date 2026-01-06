@@ -35,10 +35,10 @@ var (
 func init() {
 	flag.String("port", "9680", "The port number to listen on for HTTP requests")
 	flag.String("address", "0.0.0.0", "The address to listen on for HTTP requests")
-	flag.String("log-level", "info", "The minimum logging level; levels are, in ascending order: debug, info, warn, error")
-	flag.String("sap-control-url", "localhost:50013", "The URL of the SAPControl SOAP web service, e.g. [https://]$HOST:$PORT. Port: 5xx13(http) or 5xx14(https). Recommendation to connect to Central Instance.")
-	flag.String("host-domain", "", "Optional Domain name to make FQDN together with hostname, Recommended in case of SAP hostname is a sigle-word hostname.")
-	flag.String("tls-skip-verify", "no", "For HTTPS scheme, should certificates signed by unknown authority being ignored")
+	flag.String("log_level", "info", "The minimum logging level; levels are, in ascending order: debug, info, warn, error")
+	flag.String("sap_control_url", "localhost:50013", "The URL of the SAPControl SOAP web service, e.g. [https://]$HOST:$PORT. Port: 5xx13(http) or 5xx14(https). Recommendation to connect to Central Instance.")
+	flag.String("host_domain", "", "Optional Domain name to make FQDN together with hostname, Recommended in case of SAP hostname is a sigle-word hostname.")
+	flag.String("tls_skip_verify", "no", "For HTTPS scheme, should certificates signed by unknown authority being ignored")
 	flag.String("alert_samples_max_age", "24h", "Oldest acceptable timestamp for Alert item (back since now()). Use \"-1s\" for unlim.")
 	flag.StringP("config", "c", "", "The path to a custom configuration file. NOTE: it must be in yaml format.")
 	flag.CommandLine.SortFlags = false

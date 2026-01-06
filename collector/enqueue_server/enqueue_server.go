@@ -28,6 +28,7 @@ func NewCollector(webService sapcontrol.WebService) (*enqueueServerCollector, er
 		webService,
 		config.NewLogger("enqueue_server"),
 	}
+	c.logger.SetLevel(webService.GetMyClient().GetMyConfig().Viper.GetString("log_level"))
 
 	c.SetDescriptor("owner_now", "Current number of lock owners in the lock table", []string{"instance_name", "instance_number", "SID", "instance_hostname"})
 	c.SetDescriptor("owner_high", "Peak number of lock owners that have been stored simultaneously in the lock table", []string{"instance_name", "instance_number", "SID", "instance_hostname"})

@@ -28,6 +28,7 @@ func NewCollector(webService sapcontrol.WebService) (*startServiceCollector, err
 		webService,
 		config.NewLogger("start_service"),
 	}
+	c.logger.SetLevel(webService.GetMyClient().GetMyConfig().Viper.GetString("log_level"))
 
 	//c.SetDescriptor("instances", "The SAP instances in the context of the whole SAP system", []string{"features", "start_priority", "instance_name", "instance_number", "SID", "instance_hostname"})
 	c.SetDescriptor("instances", "The SAP instances in the context of the whole SAP system",

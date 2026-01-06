@@ -28,6 +28,7 @@ func NewCollector(webService sapcontrol.WebService) (*dispatcherCollector, error
 		webService,
 		config.NewLogger("dispatcher"),
 	}
+	c.logger.SetLevel(webService.GetMyClient().GetMyConfig().Viper.GetString("log_level"))
 
 	c.SetDescriptor("queue_now", "Work process current queue length", []string{"type", "instance_name", "instance_number", "SID", "instance_hostname"})
 	c.SetDescriptor("queue_high", "Work process peak queue length", []string{"type", "instance_name", "instance_number", "SID", "instance_hostname"})
