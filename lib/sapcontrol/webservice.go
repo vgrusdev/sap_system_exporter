@@ -235,7 +235,7 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 			continue
 		}
 		if len(response.Instances) == 0 {
-			lastErr = append(lastErr, fmt.Errorf("GetSystemInstanceList: no instances found at %s", endpoint))
+			lastErr = append(lastErr, fmt.Errorf("GetSystemInstanceList: no instances found at %v", endpoint))
 			continue
 		}
 		log.Debug("Got Instancelist from endpoint %s", endpoint)
