@@ -127,9 +127,14 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 
 	// Collect results
 	for result := range results {
+		sid := v.GetString("sap_sid")
 		if result.err != nil {
-			result.prop.SID = v.GetString("sap_sid")
-			log.Error("Get properties error for instance %d: %s", result.prop.InstanceNr, result.err)
+			result.prop.SID = sid
+			log.Errorf("Get properties error for instance %d: %s", result.prop.InstanceNr, result.err)
+		} else {
+			if sid == "" {
+				v.Set("sap_sid", result.prop.SID)
+			}
 		}
 		instances = append(instances, *result.prop)
 	}
