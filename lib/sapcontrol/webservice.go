@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"strconv"
 
 	"strings"
 
@@ -427,4 +428,31 @@ func Make_string_map(s string) map[string]string {
 		}
 	}
 	return m
+}
+func ParceCPUTime(cpuStr string) (float64, error) {
+
+	if cpuStr == "" {
+		return 0, nil
+	}
+	// Remove any whitespace
+	cpuStr = strings.TrimSpace(cpuStr)
+
+	// Split by colon
+	parts := strings.Split(cpuStr, ":")
+	i := len(parts) - 1 // last element in time str
+
+	d := []float64{24 * 60 * 60, 60 * 60, 60, 1}
+	j := len(d) - 1 // last element in multiplier (seconds)
+
+	var totalSeconds float64 = 0
+	for i >= 0 && j >= 0 {
+		if item, err := strconv.ParseFloat(parts[i], 64); err == nil {
+			totalSeconds += item * d[j]
+		} else {
+			return 0, err
+		}
+		i -= 1
+		j -= 1
+	}
+	return totalSeconds, nil
 }

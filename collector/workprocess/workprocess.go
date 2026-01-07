@@ -38,10 +38,10 @@ func NewCollector(webService sapcontrol.WebService) (*workprocessCollector, erro
 
 	c.SetDescriptor("dispatcher_work_processes_status", "Status of SAP process",
 		[]string{"wp_type", "status", "pid", "name", "description", "client", "user", "instance_name", "instance_number", "SID", "instance_hostname"})
-	c.SetDescriptor("dispatcher_work_processes_cpu", "CPU usage percentage of SAP process",
+	c.SetDescriptor("dispatcher_work_processes_cpu", "SAP process CPU usage counter in seconds",
 		[]string{"wp_type", "status", "pid", "name", "description", "client", "user", "instance_name", "instance_number", "SID", "instance_hostname"})
-	c.SetDescriptor("dispatcher_work_processes_elapsed", "Elapsed time of SAP process in seconds",
-		[]string{"wp_type", "status", "pid", "name", "description", "client", "user", "instance_name", "instance_number", "SID", "instance_hostname"})
+	//c.SetDescriptor("dispatcher_work_processes_elapsed", "Elapsed time of SAP process in seconds",
+	//	[]string{"wp_type", "status", "pid", "name", "description", "client", "user", "instance_name", "instance_number", "SID", "instance_hostname"})
 
 	return c, nil
 }
@@ -137,12 +137,15 @@ func (c *workprocessCollector) sendWorkProcessMetrics(ch chan<- prometheus.Metri
 	labels := append([]string{wp.Type, wp.Status, wp.Pid, fmt.Sprintf("WP-%s", wp.No), wp.Reason, wp.Client, wp.User}, commonLabels...)
 
 	ch <- c.MakeGaugeMetric("dispatcher_work_processes_status", float64(statusValue), labels...)
-	log.Debugf(" WP.CPU metric: %s", wp.Cpu)
-	if cpu, err := strconv.ParseFloat(wp.Cpu, 64); err == nil {
-		ch <- c.MakeGaugeMetric("dispatcher_work_processes_cpu", cpu, labels...)
+
+	//if cpu, err := strconv.ParseFloat(wp.Cpu, 64); err == nil {
+	if cpu, err := sapcontrol.ParceCPUTime(wp.Cpu); err == nil {
+		ch <- c.MakeCounterMetric("dispatcher_work_processes_cpu", cpu, labels...)
+	} else {
+		log.Debugf(" WP.CPU metric %s conversion error: %s", wp.Cpu, err)
 	}
-	log.Debugf("Elapsed time value = %s", wp.Time)
-	if elapsed, err := strconv.ParseFloat(wp.Time, 64); err == nil {
-		ch <- c.MakeGaugeMetric("dispatcher_work_processes_elapsed", elapsed, labels...)
-	}
+	//log.Debugf("Elapsed time value = %s", wp.Time)
+	//if elapsed, err := strconv.ParseFloat(wp.Time, 64); err == nil {
+	//	ch <- c.MakeGaugeMetric("dispatcher_work_processes_elapsed", elapsed, labels...)
+	//}
 }
