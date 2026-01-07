@@ -2,7 +2,9 @@ package workprocess
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 
 	//"strings"
 
@@ -33,6 +35,13 @@ func NewCollector(webService sapcontrol.WebService) (*workprocessCollector, erro
 
 	c.SetDescriptor("dispatcher_work_processes", "Dispatcher work process counts by type and status",
 		[]string{"wp_type", "status", "instance_name", "instance_number", "SID", "instance_hostname"})
+
+	c.SetDescriptor("dispatcher_work_processes_status", "Status of SAP process",
+		[]string{"wp_type", "status", "pid", "name", "description", "client", "user", "instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("dispatcher_work_processes_cpu", "CPU usage percentage of SAP process",
+		[]string{"wp_type", "status", "pid", "name", "description", "client", "user", "instance_name", "instance_number", "SID", "instance_hostname"})
+	c.SetDescriptor("dispatcher_work_processes_elapsed", "Elapsed time of SAP process in seconds",
+		[]string{"wp_type", "status", "pid", "name", "description", "client", "user", "instance_name", "instance_number", "SID", "instance_hostname"})
 
 	return c, nil
 }
@@ -66,6 +75,9 @@ func (c *workprocessCollector) recordWorkProcessStats(ctx context.Context, ch ch
 
 	for _, instance := range instanceInfo {
 
+		if !strings.Contains(strings.ToUpper(instance.Features), "ABAP") {
+			continue
+		}
 		url := instance.Endpoint
 
 		wpTable, err := c.webService.ABAPGetWPTable(ctx, url)
@@ -93,7 +105,8 @@ func (c *workprocessCollector) recordWorkProcessStats(ctx context.Context, ch ch
 			wpCounts[wpType][status]++
 
 			// Send detailed process metrics
-			//c.sendWorkProcessMetrics(ch, instance, wp)
+			c.sendWorkProcessMetrics(ch, commonLabels, wp)
+
 		}
 
 		// Send aggregated work process metrics
@@ -105,4 +118,27 @@ func (c *workprocessCollector) recordWorkProcessStats(ctx context.Context, ch ch
 		}
 	}
 	return nil
+}
+
+func (c *workprocessCollector) sendWorkProcessMetrics(ch chan<- prometheus.Metric, commonLabels []string, wp *sapcontrol.WorkProcess) {
+	//log := c.logger
+
+	// Work process status
+	statusValue := 0.0
+	statusUp := strings.ToUpper(wp.Status)
+	if strings.Contains(statusUp, "RUN") {
+		statusValue = 1
+	} else if strings.Contains(statusUp, "WAIT") {
+		statusValue = 0.5
+	} else {
+		statusValue = 0
+	}
+	labels := append([]string{wp.Type, wp.Status, wp.Pid, fmt.Sprintf("WP-%s", wp.No), wp.Client, wp.User}, commonLabels...)
+	ch <- c.MakeGaugeMetric("dispatcher_work_processes_status", float64(statusValue), labels...)
+	if cpu, err := strconv.ParseFloat(wp.Cpu, 64); err == nil {
+		ch <- c.MakeGaugeMetric("dispatcher_work_processes_cpu", cpu, labels...)
+	}
+	if elapsed, err := strconv.ParseFloat(wp.Time, 64); err == nil {
+		ch <- c.MakeGaugeMetric("dispatcher_work_processes_elapsed", elapsed, labels...)
+	}
 }
