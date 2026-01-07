@@ -121,7 +121,7 @@ func (c *workprocessCollector) recordWorkProcessStats(ctx context.Context, ch ch
 }
 
 func (c *workprocessCollector) sendWorkProcessMetrics(ch chan<- prometheus.Metric, commonLabels []string, wp *sapcontrol.WorkProcess) {
-	//log := c.logger
+	log := c.logger
 
 	// Work process status
 	statusValue := 0.0
@@ -139,6 +139,8 @@ func (c *workprocessCollector) sendWorkProcessMetrics(ch chan<- prometheus.Metri
 	ch <- c.MakeGaugeMetric("dispatcher_work_processes_status", float64(statusValue), labels...)
 	if cpu, err := strconv.ParseFloat(wp.Cpu, 64); err == nil {
 		ch <- c.MakeGaugeMetric("dispatcher_work_processes_cpu", cpu, labels...)
+	} else {
+		log.Debugf("Error convertig WP.CPU metric: %s", wp.Cpu)
 	}
 	if elapsed, err := strconv.ParseFloat(wp.Time, 64); err == nil {
 		ch <- c.MakeGaugeMetric("dispatcher_work_processes_elapsed", elapsed, labels...)
