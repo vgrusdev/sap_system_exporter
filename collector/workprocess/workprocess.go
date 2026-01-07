@@ -137,11 +137,11 @@ func (c *workprocessCollector) sendWorkProcessMetrics(ch chan<- prometheus.Metri
 	labels := append([]string{wp.Type, wp.Status, wp.Pid, fmt.Sprintf("WP-%s", wp.No), wp.Reason, wp.Client, wp.User}, commonLabels...)
 
 	ch <- c.MakeGaugeMetric("dispatcher_work_processes_status", float64(statusValue), labels...)
+	log.Debugf(" WP.CPU metric: %s", wp.Cpu)
 	if cpu, err := strconv.ParseFloat(wp.Cpu, 64); err == nil {
 		ch <- c.MakeGaugeMetric("dispatcher_work_processes_cpu", cpu, labels...)
-	} else {
-		log.Debugf("Error convertig WP.CPU metric: %s", wp.Cpu)
 	}
+	log.Debugf("Elapsed time value = %s", wp.Time)
 	if elapsed, err := strconv.ParseFloat(wp.Time, 64); err == nil {
 		ch <- c.MakeGaugeMetric("dispatcher_work_processes_elapsed", elapsed, labels...)
 	}
