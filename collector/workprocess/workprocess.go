@@ -133,7 +133,9 @@ func (c *workprocessCollector) sendWorkProcessMetrics(ch chan<- prometheus.Metri
 	} else {
 		statusValue = 0
 	}
-	labels := append([]string{wp.Type, wp.Status, wp.Pid, fmt.Sprintf("WP-%s", wp.No), wp.Client, wp.User}, commonLabels...)
+
+	labels := append([]string{wp.Type, wp.Status, wp.Pid, fmt.Sprintf("WP-%s", wp.No), wp.Reason, wp.Client, wp.User}, commonLabels...)
+
 	ch <- c.MakeGaugeMetric("dispatcher_work_processes_status", float64(statusValue), labels...)
 	if cpu, err := strconv.ParseFloat(wp.Cpu, 64); err == nil {
 		ch <- c.MakeGaugeMetric("dispatcher_work_processes_cpu", cpu, labels...)
