@@ -56,6 +56,8 @@ func NewLokiClient(myConfig *config.MyConfig) promtail.Client {
 		Location:           loc,
 	}
 
+	log.Debugf("New client params: %v", cfg)
+
 	c, err := promtail.NewClientProto(&cfg)
 	//c, err := promtail.NewClientJson(&cfg)
 	if err != nil {

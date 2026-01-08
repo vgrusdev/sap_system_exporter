@@ -180,7 +180,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("send_alerts_to_prom", false)
 	v.SetDefault("loki_url", "")
 	v.SetDefault("loki_name", "sap_alerts")
-	v.SetDefault("loki_tenantid", "fake")
+	v.SetDefault("loki_tenantid", "sap_alerts")
 	v.SetDefault("loki_batch_wait", 100)
 	v.SetDefault("loki_batch_entries_number", 32)
 	v.SetDefault("loki_http_timeout", 1000)
