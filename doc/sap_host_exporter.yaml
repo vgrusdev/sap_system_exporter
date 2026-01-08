@@ -29,6 +29,7 @@ collect_alerts: true
 # Domain part will further be used for all instances hostnames
 # Alternate way - provide host-domain, that will pe appended to instances hostnames in case they are not FQDN.
 sap_control_url: "localhost:50013"
+sap_control_access_point: "/sap/bc/soap/rfc"
 host_domain: ""
 tls_skip_verify: "yes"
 # HTTP Basic Authentication credentials for the SAPControl web service, e.g. <sid>adm user and password.

@@ -247,6 +247,7 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 	sapURL := c.config.Viper.GetString("sap_control_url")
 
 	endpoints := []string{
+		fmt.Sprintf("%s%s", sapURL, c.config.Viper.GetString("sap_control_access_point")),
 		fmt.Sprintf("%s/sap/bc/soap/rfc", sapURL),
 		fmt.Sprintf("%s/SAPControl.cgi", sapURL),
 		fmt.Sprintf("%s/sap/bc/webdynpro/sap/dba_control", sapURL),
@@ -275,7 +276,7 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 // implements WebService.GetInstanceProperties(context.Context, string)
 func (s *webService) GetInstanceProperties(ctx context.Context, endpoint string) (*GetInstancePropertiesResponse, error) {
 	c := s.Client
-	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	endpoint = fmt.Sprintf("%s%s", endpoint, c.config.Viper.GetString("sap_control_access_point"))
 	client := c.CreateSoapClient(endpoint)
 
 	request := &GetInstanceProperties{}
@@ -292,7 +293,7 @@ func (s *webService) GetInstanceProperties(ctx context.Context, endpoint string)
 // implements WebService.GetProcessList(context.Context, string)
 func (s *webService) GetProcessList(ctx context.Context, endpoint string) (*GetProcessListResponse, error) {
 	c := s.Client
-	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	endpoint = fmt.Sprintf("%s%s", endpoint, c.config.Viper.GetString("sap_control_access_point"))
 	client := c.CreateSoapClient(endpoint)
 
 	request := &GetProcessList{}
@@ -309,7 +310,7 @@ func (s *webService) GetProcessList(ctx context.Context, endpoint string) (*GetP
 // implements WebService.EnqGetStatistic(context.Context, string)
 func (s *webService) EnqGetStatistic(ctx context.Context, endpoint string) (*EnqGetStatisticResponse, error) {
 	c := s.Client
-	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	endpoint = fmt.Sprintf("%s%s", endpoint, c.config.Viper.GetString("sap_control_access_point"))
 	client := c.CreateSoapClient(endpoint)
 
 	request := &EnqGetStatistic{}
@@ -326,7 +327,7 @@ func (s *webService) EnqGetStatistic(ctx context.Context, endpoint string) (*Enq
 // implements WebService.GetQueueStatistic(context.Context, string)
 func (s *webService) GetQueueStatistic(ctx context.Context, endpoint string) (*GetQueueStatisticResponse, error) {
 	c := s.Client
-	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	endpoint = fmt.Sprintf("%s%s", endpoint, c.config.Viper.GetString("sap_control_access_point"))
 	client := c.CreateSoapClient(endpoint)
 
 	request := &GetQueueStatistic{}
@@ -343,7 +344,7 @@ func (s *webService) GetQueueStatistic(ctx context.Context, endpoint string) (*G
 // implements WebService.ABAPGetWPTable(context.Context, string)
 func (s *webService) ABAPGetWPTable(ctx context.Context, endpoint string) (*ABAPGetWPTableResponse, error) {
 	c := s.Client
-	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	endpoint = fmt.Sprintf("%s%s", endpoint, c.config.Viper.GetString("sap_control_access_point"))
 	client := c.CreateSoapClient(endpoint)
 
 	request := &ABAPGetWPTable{}
@@ -360,7 +361,7 @@ func (s *webService) ABAPGetWPTable(ctx context.Context, endpoint string) (*ABAP
 // implements WebService.GetAlerts(context.Context, string)
 func (s *webService) GetAlerts(ctx context.Context, endpoint string) (*GetAlertsResponse, error) {
 	c := s.Client
-	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
+	endpoint = fmt.Sprintf("%s%s", endpoint, c.config.Viper.GetString("sap_control_access_point"))
 	client := c.CreateSoapClient(endpoint)
 
 	request := &GetAlerts{}
