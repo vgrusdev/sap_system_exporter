@@ -57,7 +57,7 @@ func (c *workprocessCollector) Collect(ch chan<- prometheus.Metric) {
 
 	err := c.recordWorkProcessStats(ctx, ch)
 	if err != nil {
-		log.Warnf("Dispatcher Collector scrape error: %s", err)
+		log.Errorf("Workprocess Collector: %s", err)
 		return
 	}
 }

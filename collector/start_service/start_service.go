@@ -67,7 +67,7 @@ func (c *startServiceCollector) Collect(ch chan<- prometheus.Metric) {
 	}, ch)
 
 	for _, err := range errs {
-		log.Warnf("Start Service Collector scrape errors: %s", err)
+		log.Errorf("Start Service Collector: %s", err)
 	}
 }
 

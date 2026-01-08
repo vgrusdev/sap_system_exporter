@@ -50,7 +50,7 @@ func (c *dispatcherCollector) Collect(ch chan<- prometheus.Metric) {
 
 	err := c.recordWorkProcessQueueStats(ctx, ch)
 	if err != nil {
-		log.Errorf("Dispatcher Collector scrape error: %s", err)
+		log.Errorf("Dispatcher Collector: %s", err)
 		return
 	}
 }
