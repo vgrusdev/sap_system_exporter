@@ -149,7 +149,7 @@ func (s *webService) GetSingleInstance(ctx context.Context, singleInstance *Inst
 	response, err := s.GetInstanceProperties(ctx, endpoint)
 	if err != nil {
 		err = errors.Wrapf(err, "GetSingleInstance")
-		singleInstance.Name = fmt.Sprintf("%d", singleInstance.InstanceNr) // instance Nr instead of Name
+		singleInstance.Name = fmt.Sprintf("#%02d", singleInstance.InstanceNr) // instance Nr instead of Name
 		return singleInstance, err
 	}
 	for _, prop := range response.Properties {
