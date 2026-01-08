@@ -61,7 +61,9 @@ func (c *MyClient) CreateSoapClient(endpoint string) *soap.Client {
 	}
 	timeout := v.GetDuration("scrape_timeout")
 	if timeout != 0 {
+		log.Debugf("Soap client with Request timeout %v", timeout)
 		opts = append(opts, soap.WithRequestTimeout(timeout))
+		opts = append(opts, soap.WithTimeout(timeout))
 	}
 
 	log.Debugf("Creating new soap client with URL: %s", endpoint)
