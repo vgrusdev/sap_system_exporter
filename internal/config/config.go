@@ -175,6 +175,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("sap_control_user", "")
 	v.SetDefault("sap_control_password", "")
 	v.SetDefault("sap_cache_ttl", "30s")
+	v.SetDefault("scrape_timeout", "30s")
 	v.SetDefault("send_alerts_to_prom", false)
 	v.SetDefault("loki_url", "")
 	v.SetDefault("loki_name", "sap_alerts")
@@ -183,6 +184,10 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("loki_batch_entries_number", 32)
 	v.SetDefault("loki_http_timeout", 1000)
 	v.SetDefault("loki_time_location", "Europe/Moscow")
+	v.SetDefault("collect_enqueueserver", true)
+	v.SetDefault("collect_dispatcher", true)
+	v.SetDefault("collect_workprocess", true)
+	v.SetDefault("collect_alerts", true)
 }
 
 func bindEnvVars(v *viper.Viper) {

@@ -21,7 +21,7 @@ func (s *webService) GetCachedProcessList(ctx context.Context, url string) ([]Pr
 	cacheMgr := client.cacheMgr
 	log := client.logger
 
-	log.Debug("Starting webService.GetCachedProcessList")
+	log.Debug("GetCachedProcessList start")
 	// Call cache function with callback in case of cache missed
 	value := cacheMgr.GetOrSet(fmt.Sprintf("ProcessList_%s", url),
 		func() (interface{}, time.Duration) {
@@ -31,30 +31,31 @@ func (s *webService) GetCachedProcessList(ctx context.Context, url string) ([]Pr
 			}
 			newProcessList, err := s.GetProcesses(ctx, url)
 			if err != nil {
-				log.Error("GetProcesses error", err)
+				log.Error("GetCachedProcessList: ", err)
 				return nil, ttl // return nil, and do not repeat ttl duration.
 			}
 			return newProcessList, ttl
 		})
 	if value != nil { // if value is not nil
 		if instances, ok := value.([]ProcessInfo); ok { // convert interface{} to []InstanceInfo
+			log.Debug("GetCachedProcessList success")
 			return instances, nil // return instances if everything OK.
 		}
 	}
-	return []ProcessInfo{}, errors.New("GetProcesses error")
+	return []ProcessInfo{}, errors.New("GetCachedProcessList: GetProcesses error")
 }
 
 func (s *webService) GetProcesses(ctx context.Context, url string) ([]ProcessInfo, error) {
 
 	log := s.Client.logger
-	log.Debugf("Starting GetProcesses func (cache callback). url = %s", url)
+	log.Debugf("GetProcesses (cache callback) start, url = %s", url)
 
 	//v := s.Client.config.Viper
 
 	// Get Instance list from the central Instance
 	processList, err := s.GetProcessList(ctx, url)
 	if err != nil {
-		return []ProcessInfo{}, errors.Wrapf(err, "GetProcesses can not get Process List for url %s", url)
+		return []ProcessInfo{}, errors.Wrapf(err, "GetProcesses: ")
 	}
 
 	n := len(processList.Processes)
@@ -69,11 +70,12 @@ func (s *webService) GetProcesses(ctx context.Context, url string) ([]ProcessInf
 		}
 		status, err := StateColorToFloat(process.Dispstatus)
 		if err != nil {
-			log.Warnf("Process status error. Url %s: %s", url, err)
+			log.Warnf("Process status error, url %s: %s", url, err)
 		}
 		singleProcess.Status = status
 
 		processes = append(processes, *singleProcess)
 	}
+	log.Debugf("GetProcesses (cache callback) success")
 	return processes, nil
 }

@@ -14,6 +14,11 @@ log_level: "info"
 sap_sid: ""
 cache_ttl: "30s"
 scrape_timeout: "30s"
+#
+collect_enqueueserver: true
+collect_dispatcher: true
+collect_workprocess: true
+collect_alerts: true
 # The url of the SAPControl web service.
 #
 # Per SAP conventions, the port should usually be 5<instance number>13 for HTTP and 5<instance number>14 for HTTPS.

@@ -263,13 +263,13 @@ func (s *webService) GetSystemInstanceList(ctx context.Context) (*GetSystemInsta
 			continue
 		}
 		if len(response.Instances) == 0 {
-			lastErr = append(lastErr, fmt.Sprintf("no instances found at %s", endpoint))
+			lastErr = append(lastErr, fmt.Sprintf("No instances found at %s", endpoint))
 			continue
 		}
 		log.Debugf("Got Instancelist from endpoint %s", endpoint)
 		return response, nil
 	}
-	return nil, fmt.Errorf("GetSystemInstanceList: failed to get instances from any endpoint: %s.", strings.Join((lastErr), ", "))
+	return nil, fmt.Errorf("GetSystemInstanceList: all endpoints failed: %s.", strings.Join((lastErr), ", "))
 }
 
 // implements WebService.GetInstanceProperties(context.Context, string)
@@ -283,7 +283,8 @@ func (s *webService) GetInstanceProperties(ctx context.Context, endpoint string)
 
 	err := client.CallContext(ctx, "GetInstanceProperties", request, response)
 	if err != nil {
-		return nil, fmt.Errorf("GetInstanceProperties failed, endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("GetInstanceProperties failed, endpoint=%s, err=%v", endpoint, err)
+		return nil, fmt.Errorf("GetInstanceProperties: %v", err)
 	}
 	return response, nil
 }
@@ -299,7 +300,8 @@ func (s *webService) GetProcessList(ctx context.Context, endpoint string) (*GetP
 
 	err := client.CallContext(ctx, "GetProcessList", request, response)
 	if err != nil {
-		return nil, fmt.Errorf("GetProcessList failed, endpoint=%s, err=%v", endpoint, err)
+		// return nil, fmt.Errorf("GetProcessList failed, endpoint=%s, err=%v", endpoint, err)
+		return nil, fmt.Errorf("GetProcessList: %v", err)
 	}
 	return response, nil
 }
@@ -315,7 +317,8 @@ func (s *webService) EnqGetStatistic(ctx context.Context, endpoint string) (*Enq
 
 	err := client.CallContext(ctx, "EnqGetStatistic", request, response)
 	if err != nil {
-		return nil, fmt.Errorf("EnqGetStatistic failed, endpoint=%s, err=%v", endpoint, err)
+		// return nil, fmt.Errorf("EnqGetStatistic failed, endpoint=%s, err=%v", endpoint, err)
+		return nil, fmt.Errorf("EnqGetStatistic: %v", err)
 	}
 	return response, nil
 }
@@ -331,7 +334,8 @@ func (s *webService) GetQueueStatistic(ctx context.Context, endpoint string) (*G
 
 	err := client.CallContext(ctx, "GetQueueStatistic", request, response)
 	if err != nil {
-		return nil, fmt.Errorf("GetQueueStatistic failed, endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("GetQueueStatistic failed, endpoint=%s, err=%v", endpoint, err)
+		return nil, fmt.Errorf("GetQueueStatistic: %v", err)
 	}
 	return response, nil
 }
@@ -347,7 +351,8 @@ func (s *webService) ABAPGetWPTable(ctx context.Context, endpoint string) (*ABAP
 
 	err := client.CallContext(ctx, "ABAPGetWPTable", request, response)
 	if err != nil {
-		return nil, fmt.Errorf("ABAPGetWPTable failed, endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("ABAPGetWPTable failed, endpoint=%s, err=%v", endpoint, err)
+		return nil, fmt.Errorf("ABAPGetWPTable: %v", err)
 	}
 	return response, nil
 }
@@ -363,7 +368,8 @@ func (s *webService) GetAlerts(ctx context.Context, endpoint string) (*GetAlerts
 
 	err := client.CallContext(ctx, "''", request, response)
 	if err != nil {
-		return nil, fmt.Errorf("GetAlerts failed, endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("GetAlerts failed, endpoint=%s, err=%v", endpoint, err)
+		return nil, fmt.Errorf("GetAlerts: %v", err)
 	}
 	return response, nil
 }

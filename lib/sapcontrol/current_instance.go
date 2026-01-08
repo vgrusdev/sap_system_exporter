@@ -28,7 +28,7 @@ func (s *webService) GetCachedInstanceList(ctx context.Context) ([]InstanceInfo,
 	cacheMgr := client.cacheMgr
 	log := client.logger
 
-	log.Debug("Starting webService.GetCachedInstanceList")
+	log.Debug("GetCachedInstanceList start.")
 	// Call cache function with callback in case of cache missed
 	value := cacheMgr.GetOrSet("InstanceInfo",
 		func() (interface{}, time.Duration) {
@@ -38,13 +38,14 @@ func (s *webService) GetCachedInstanceList(ctx context.Context) ([]InstanceInfo,
 			}
 			newInstances, err := s.GetAllInstances(ctx)
 			if err != nil {
-				log.Error("GetAllInstances error", err)
+				log.Errorf("GetCachedInstanceList: %v", err)
 				return nil, ttl // return nil, and do not repeat ttl duration.
 			}
 			return newInstances, ttl
 		})
 	if value != nil { // if value is not nil
 		if instances, ok := value.([]InstanceInfo); ok { // convert interface{} to []InstanceInfo
+			log.Debug(("GetCachedInstanceList success."))
 			return instances, nil // return instances if everything OK.
 		}
 	}
@@ -54,7 +55,7 @@ func (s *webService) GetCachedInstanceList(ctx context.Context) ([]InstanceInfo,
 func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error) {
 
 	log := s.Client.logger
-	log.Debug("Starting GetAllInstances func (cache callback)")
+	log.Debug("GetAllInstances (cache callback) start")
 
 	v := s.Client.config.Viper
 	useHTTPS := v.GetBool("sap_use_ssl")
@@ -62,7 +63,7 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 	// Get Instance list from the central Instance
 	instanceList, err := s.GetSystemInstanceList(ctx)
 	if err != nil {
-		return []InstanceInfo{}, errors.Wrap(err, "GetAllInstances can not get Instances List")
+		return []InstanceInfo{}, errors.Wrap(err, "GetAllInstances: ")
 	}
 
 	n := len(instanceList.Instances)
@@ -130,7 +131,7 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 		sid := v.GetString("sap_sid")
 		if result.err != nil {
 			result.prop.SID = sid
-			log.Errorf("Get properties error for instance %d: %s", result.prop.InstanceNr, result.err)
+			log.Errorf("GetAllInstances: properties for instance %d: %s", result.prop.InstanceNr, result.err)
 		} else {
 			if sid == "" {
 				v.Set("sap_sid", result.prop.SID)
@@ -138,6 +139,7 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 		}
 		instances = append(instances, *result.prop)
 	}
+	log.Debug("GetAllInstances (cache callback) success")
 	return instances, nil
 }
 
@@ -146,7 +148,7 @@ func (s *webService) GetSingleInstance(ctx context.Context, singleInstance *Inst
 	endpoint := singleInstance.Endpoint
 	response, err := s.GetInstanceProperties(ctx, endpoint)
 	if err != nil {
-		err = errors.Wrapf(err, "could not perform GetInstanceProperties query for endpoint %s", endpoint)
+		err = errors.Wrapf(err, "GetSingleInstance: ")
 		singleInstance.Name = fmt.Sprintf("%d", singleInstance.InstanceNr) // instance Nr instead of Name
 		return singleInstance, err
 	}
@@ -188,7 +190,7 @@ func (s *webService) GetCurrentInstance(ctx context.Context, endpoint string) (*
 
 	response, err := s.GetInstanceProperties(ctx, endpoint)
 	if err != nil {
-		err = errors.Wrap(err, "could not perform GetInstanceProperties query")
+		err = errors.Wrap(err, "GetCurrentInstance: ")
 		return nil, err
 	}
 
@@ -200,11 +202,11 @@ func (s *webService) GetCurrentInstance(ctx context.Context, endpoint string) (*
 			var num int64
 			num, err = strconv.ParseInt(prop.Value, 10, 32)
 			if err != nil {
-				err = errors.Wrapf(err, "could not parse instance number to int32: %s", prop.Value)
+				err = errors.Wrapf(err, "GetCurrentInstance: instance number parse: %s", prop.Value)
 				return nil, err
 			}
 			if num < math.MinInt32 || num > math.MaxInt32 {
-				err = errors.New("parsed instance number out of int32 range")
+				err = errors.New("GetCurrentInstance: parsed instance number out of int32 range")
 				return nil, err
 			}
 			instanceProps.Number = int32(num)

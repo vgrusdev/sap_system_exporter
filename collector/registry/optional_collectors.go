@@ -20,38 +20,51 @@ func RegisterOptionalCollectors(webService sapcontrol.WebService) error {
 
 	log := config.NewLogger("registry")
 	log.SetLevel(webService.GetMyClient().GetMyConfig().Viper.GetString("log_level"))
+	v := webService.GetMyClient().GetMyConfig().Viper
 
-	enqueueServerCollector, err := enqueue_server.NewCollector(webService)
-	if err != nil {
-		return errors.Wrap(err, "error registering Enqueue Server collector")
+	if v.GetBool("collect_enqueueserver") {
+		enqueueServerCollector, err := enqueue_server.NewCollector(webService)
+		if err != nil {
+			return errors.Wrap(err, "error registering Enqueue Server collector")
+		} else {
+			prometheus.MustRegister(enqueueServerCollector)
+			log.Info("Enqueue Server optional collector registered")
+		}
 	} else {
-		prometheus.MustRegister(enqueueServerCollector)
-		log.Info("Enqueue Server optional collector registered")
+		log.Debug("Enqueue Server optional collector is not registered")
 	}
-
-	dispatcherCollector, err := dispatcher.NewCollector(webService)
-	if err != nil {
-		return errors.Wrap(err, "error registering Dispatcher collector")
+	if v.GetBool("collect_dispatcher") {
+		dispatcherCollector, err := dispatcher.NewCollector(webService)
+		if err != nil {
+			return errors.Wrap(err, "error registering Dispatcher collector")
+		} else {
+			prometheus.MustRegister(dispatcherCollector)
+			log.Info("Dispatcher optional collector registered")
+		}
 	} else {
-		prometheus.MustRegister(dispatcherCollector)
-		log.Info("Dispatcher optional collector registered")
+		log.Debug("Dispatcher optional collector is not registered")
 	}
-
-	workprocessCollector, err := workprocess.NewCollector(webService)
-	if err != nil {
-		return errors.Wrap(err, "error registering WorkProcess collector")
+	if v.GetBool("collect_workprocess") {
+		workprocessCollector, err := workprocess.NewCollector(webService)
+		if err != nil {
+			return errors.Wrap(err, "error registering WorkProcess collector")
+		} else {
+			prometheus.MustRegister(workprocessCollector)
+			log.Info("WorkProcess optional collector registered")
+		}
 	} else {
-		prometheus.MustRegister(workprocessCollector)
-		log.Info("WorkProcess optional collector registered")
+		log.Debug("WorkProcess optional collector is not registered")
 	}
-
-	alertsCollector, err := alerts.NewCollector(webService)
-	if err != nil {
-		return errors.Wrap(err, "error registering Alerts collector")
+	if v.GetBool("collect_alerts") {
+		alertsCollector, err := alerts.NewCollector(webService)
+		if err != nil {
+			return errors.Wrap(err, "error registering Alerts collector")
+		} else {
+			prometheus.MustRegister(alertsCollector)
+			log.Info("Alerts optional collector registered")
+		}
 	} else {
-		prometheus.MustRegister(alertsCollector)
-		log.Info("Alerts optional collector registered")
+		log.Debug("Alerts optional collector is not registered")
 	}
-
 	return nil
 }
