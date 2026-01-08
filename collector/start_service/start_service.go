@@ -77,7 +77,7 @@ func (c *startServiceCollector) recordInstances(ctx context.Context, ch chan<- p
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "recordInstances collector error")
+		return errors.Wrap(err, "recordInstances")
 	}
 	log.Debugf("recordInstances: Instances in the list: %d", len(instanceInfo))
 
@@ -103,7 +103,7 @@ func (c *startServiceCollector) recordProcesses(ctx context.Context, ch chan<- p
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "recordProcesses collector error")
+		return errors.Wrap(err, "recordProcesses")
 	}
 	log.Debugf("recordProcesses: Instances in the list: %d", len(instanceInfo))
 
@@ -175,7 +175,7 @@ func (c *startServiceCollector) recordProcessesPerInstance(ctx context.Context, 
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "recordProcessesPerInstance collector error")
+		return errors.Wrap(err, "recordProcessesPerInstance")
 	}
 	log.Debugf("recordProcessesPerInstance: Instances in the list: %d", len(instanceInfo))
 

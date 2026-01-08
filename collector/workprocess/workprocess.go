@@ -65,11 +65,11 @@ func (c *workprocessCollector) Collect(ch chan<- prometheus.Metric) {
 func (c *workprocessCollector) recordWorkProcessStats(ctx context.Context, ch chan<- prometheus.Metric) error {
 	// VG ++    loop on instances
 	log := c.logger
-	log.Debug("recordWorkProcessStats collecting")
+	log.Debug("recordWorkProcessStats start")
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "recordWorkProcessStats collector error")
+		return errors.Wrap(err, "recordWorkProcessStats")
 	}
 	log.Debugf("recordWorkProcessStats: Instances in the list: %d", len(instanceInfo))
 
@@ -82,7 +82,7 @@ func (c *workprocessCollector) recordWorkProcessStats(ctx context.Context, ch ch
 
 		wpTable, err := c.webService.ABAPGetWPTable(ctx, url)
 		if err != nil {
-			log.Errorf("ABAPGetWPTable error %s", err)
+			log.Errorf("recordWorkProcessStats: %v", err)
 			continue
 		}
 
@@ -117,6 +117,7 @@ func (c *workprocessCollector) recordWorkProcessStats(ctx context.Context, ch ch
 			}
 		}
 	}
+	log.Debug("recordWorkProcessStats success")
 	return nil
 }
 

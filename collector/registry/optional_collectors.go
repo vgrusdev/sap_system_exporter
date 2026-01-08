@@ -25,7 +25,7 @@ func RegisterOptionalCollectors(webService sapcontrol.WebService) error {
 	if v.GetBool("collect_enqueueserver") {
 		enqueueServerCollector, err := enqueue_server.NewCollector(webService)
 		if err != nil {
-			return errors.Wrap(err, "error registering Enqueue Server collector")
+			return errors.Wrap(err, "RegisterOptionalCollectors: Enqueue Server")
 		} else {
 			prometheus.MustRegister(enqueueServerCollector)
 			log.Info("Enqueue Server optional collector registered")
@@ -36,7 +36,7 @@ func RegisterOptionalCollectors(webService sapcontrol.WebService) error {
 	if v.GetBool("collect_dispatcher") {
 		dispatcherCollector, err := dispatcher.NewCollector(webService)
 		if err != nil {
-			return errors.Wrap(err, "error registering Dispatcher collector")
+			return errors.Wrap(err, "RegisterOptionalCollectors: Dispatcher")
 		} else {
 			prometheus.MustRegister(dispatcherCollector)
 			log.Info("Dispatcher optional collector registered")
@@ -47,7 +47,7 @@ func RegisterOptionalCollectors(webService sapcontrol.WebService) error {
 	if v.GetBool("collect_workprocess") {
 		workprocessCollector, err := workprocess.NewCollector(webService)
 		if err != nil {
-			return errors.Wrap(err, "error registering WorkProcess collector")
+			return errors.Wrap(err, "RegisterOptionalCollectors: WorkProcess")
 		} else {
 			prometheus.MustRegister(workprocessCollector)
 			log.Info("WorkProcess optional collector registered")
@@ -58,7 +58,7 @@ func RegisterOptionalCollectors(webService sapcontrol.WebService) error {
 	if v.GetBool("collect_alerts") {
 		alertsCollector, err := alerts.NewCollector(webService)
 		if err != nil {
-			return errors.Wrap(err, "error registering Alerts collector")
+			return errors.Wrap(err, "RegisterOptionalCollectors: Alerts")
 		} else {
 			prometheus.MustRegister(alertsCollector)
 			log.Info("Alerts optional collector registered")

@@ -55,7 +55,7 @@ func (s *webService) GetProcesses(ctx context.Context, url string) ([]ProcessInf
 	// Get Instance list from the central Instance
 	processList, err := s.GetProcessList(ctx, url)
 	if err != nil {
-		return []ProcessInfo{}, errors.Wrapf(err, "GetProcesses: ")
+		return []ProcessInfo{}, errors.Wrapf(err, "GetProcesses")
 	}
 
 	n := len(processList.Processes)

@@ -63,7 +63,7 @@ func (s *webService) GetAllInstances(ctx context.Context) ([]InstanceInfo, error
 	// Get Instance list from the central Instance
 	instanceList, err := s.GetSystemInstanceList(ctx)
 	if err != nil {
-		return []InstanceInfo{}, errors.Wrap(err, "GetAllInstances: ")
+		return []InstanceInfo{}, errors.Wrap(err, "GetAllInstances")
 	}
 
 	n := len(instanceList.Instances)
@@ -148,7 +148,7 @@ func (s *webService) GetSingleInstance(ctx context.Context, singleInstance *Inst
 	endpoint := singleInstance.Endpoint
 	response, err := s.GetInstanceProperties(ctx, endpoint)
 	if err != nil {
-		err = errors.Wrapf(err, "GetSingleInstance: ")
+		err = errors.Wrapf(err, "GetSingleInstance")
 		singleInstance.Name = fmt.Sprintf("%d", singleInstance.InstanceNr) // instance Nr instead of Name
 		return singleInstance, err
 	}
@@ -190,7 +190,7 @@ func (s *webService) GetCurrentInstance(ctx context.Context, endpoint string) (*
 
 	response, err := s.GetInstanceProperties(ctx, endpoint)
 	if err != nil {
-		err = errors.Wrap(err, "GetCurrentInstance: ")
+		err = errors.Wrap(err, "GetCurrentInstance")
 		return nil, err
 	}
 

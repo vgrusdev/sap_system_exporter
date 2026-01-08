@@ -69,7 +69,7 @@ type current_alert struct {
 func labelSetFromArrays(keys []string, values []string) (map[string]string, error) {
 	m := make(map[string]string)
 	if len(keys) != len(values) {
-		return m, errors.New("Arrays should be the same length")
+		return m, errors.New("labelSetFromArrays: Arrays should be the same length")
 	}
 	for i, key := range keys {
 		m[key] = values[i]
@@ -80,11 +80,11 @@ func labelSetFromArrays(keys []string, values []string) (map[string]string, erro
 func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus.Metric) error {
 	// VG ++    loop on instances
 	log := c.logger
-	log.Debug("recordAlerts collecting")
+	log.Debug("recordAlerts start")
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "recordEnqStats collector error")
+		return errors.Wrap(err, "recordAlerts")
 	}
 	log.Debugf("recordAlerts: Instances in the list: %d", len(instanceInfo))
 
@@ -136,7 +136,7 @@ func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus
 
 		alertList, err := c.webService.GetAlerts(ctx, url)
 		if err != nil {
-			log.Warnf("GetAlerts error: %s", err)
+			log.Warnf("GetAlerts: %s", err)
 			continue
 		}
 
@@ -165,7 +165,7 @@ func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus
 
 			state, err := sapcontrol.StateColorToFloat(alert_item.Value)
 			if err != nil {
-				log.Warnf("SAPControl web service error, unable to process SAPControl Alert Value data %v: %s", alert_item.Value, err)
+				log.Warnf("SrecordAlerts: SAPControl Alert Value conversion data %v: %s", alert_item.Value, err)
 				continue
 			}
 			labels := append([]string{alert_item.Object,
@@ -214,5 +214,6 @@ func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus
 			} // if loki_client != nil
 		} // for _, alert_item := range alert_item_list
 	} // for _, instance := range instanceList.Instances
+	log.Debug("recordAlerts success")
 	return nil
 }
