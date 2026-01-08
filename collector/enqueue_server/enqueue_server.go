@@ -72,7 +72,7 @@ func (c *enqueueServerCollector) Collect(ch chan<- prometheus.Metric) {
 
 	err := c.recordEnqStats(ctx, ch)
 	if err != nil {
-		log.Warnf("Enqueue Server Collector scrape error: %s", err)
+		log.Errorf("Enqueue Server Collector scrape error: %s", err)
 	}
 }
 

@@ -50,7 +50,7 @@ func (c *dispatcherCollector) Collect(ch chan<- prometheus.Metric) {
 
 	err := c.recordWorkProcessQueueStats(ctx, ch)
 	if err != nil {
-		log.Warnf("Dispatcher Collector scrape error: %s", err)
+		log.Errorf("Dispatcher Collector scrape error: %s", err)
 		return
 	}
 }
@@ -62,7 +62,7 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ctx context.Context, c
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "recordWorkProcessQueueStats collector error")
+		return errors.Wrap(err, "recordWorkProcessQueueStats")
 	}
 	log.Debugf("recordWorkProcessQueueStats: Instances in the list: %d", len(instanceInfo))
 

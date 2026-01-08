@@ -283,8 +283,8 @@ func (s *webService) GetInstanceProperties(ctx context.Context, endpoint string)
 
 	err := client.CallContext(ctx, "GetInstanceProperties", request, response)
 	if err != nil {
-		//return nil, fmt.Errorf("GetInstanceProperties failed, endpoint=%s, err=%v", endpoint, err)
-		return nil, fmt.Errorf("GetInstanceProperties: %v", err)
+		return nil, fmt.Errorf("GetInstanceProperties: endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("GetInstanceProperties: %v", err)
 	}
 	return response, nil
 }
@@ -300,8 +300,8 @@ func (s *webService) GetProcessList(ctx context.Context, endpoint string) (*GetP
 
 	err := client.CallContext(ctx, "GetProcessList", request, response)
 	if err != nil {
-		// return nil, fmt.Errorf("GetProcessList failed, endpoint=%s, err=%v", endpoint, err)
-		return nil, fmt.Errorf("GetProcessList: %v", err)
+		return nil, fmt.Errorf("GetProcessList: endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("GetProcessList: %v", err)
 	}
 	return response, nil
 }
@@ -317,8 +317,8 @@ func (s *webService) EnqGetStatistic(ctx context.Context, endpoint string) (*Enq
 
 	err := client.CallContext(ctx, "EnqGetStatistic", request, response)
 	if err != nil {
-		// return nil, fmt.Errorf("EnqGetStatistic failed, endpoint=%s, err=%v", endpoint, err)
-		return nil, fmt.Errorf("EnqGetStatistic: %v", err)
+		return nil, fmt.Errorf("EnqGetStatistic: endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("EnqGetStatistic: %v", err)
 	}
 	return response, nil
 }
@@ -334,13 +334,13 @@ func (s *webService) GetQueueStatistic(ctx context.Context, endpoint string) (*G
 
 	err := client.CallContext(ctx, "GetQueueStatistic", request, response)
 	if err != nil {
-		//return nil, fmt.Errorf("GetQueueStatistic failed, endpoint=%s, err=%v", endpoint, err)
-		return nil, fmt.Errorf("GetQueueStatistic: %v", err)
+		return nil, fmt.Errorf("GetQueueStatistic: endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("GetQueueStatistic: %v", err)
 	}
 	return response, nil
 }
 
-// implements WebService.GetQueueStatistic(context.Context, string)
+// implements WebService.ABAPGetWPTable(context.Context, string)
 func (s *webService) ABAPGetWPTable(ctx context.Context, endpoint string) (*ABAPGetWPTableResponse, error) {
 	c := s.Client
 	endpoint = fmt.Sprintf("%s/sap/bc/soap/rfc", endpoint)
@@ -351,8 +351,8 @@ func (s *webService) ABAPGetWPTable(ctx context.Context, endpoint string) (*ABAP
 
 	err := client.CallContext(ctx, "ABAPGetWPTable", request, response)
 	if err != nil {
-		//return nil, fmt.Errorf("ABAPGetWPTable failed, endpoint=%s, err=%v", endpoint, err)
-		return nil, fmt.Errorf("ABAPGetWPTable: %v", err)
+		return nil, fmt.Errorf("ABAPGetWPTable: endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("ABAPGetWPTable: %v", err)
 	}
 	return response, nil
 }
@@ -368,8 +368,8 @@ func (s *webService) GetAlerts(ctx context.Context, endpoint string) (*GetAlerts
 
 	err := client.CallContext(ctx, "''", request, response)
 	if err != nil {
-		//return nil, fmt.Errorf("GetAlerts failed, endpoint=%s, err=%v", endpoint, err)
-		return nil, fmt.Errorf("GetAlerts: %v", err)
+		return nil, fmt.Errorf("GetAlerts: endpoint=%s, err=%v", endpoint, err)
+		//return nil, fmt.Errorf("GetAlerts: %v", err)
 	}
 	return response, nil
 }
