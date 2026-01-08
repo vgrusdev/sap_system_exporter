@@ -201,7 +201,7 @@ func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus
 				}
 				log.Debugf("aTime: %s, alert time: %v, time since: %v, sample_max_age: %v, timeLocation: %v", aTime, t, time.Since(t), samples_max_age, timeLocation)
 				if (samples_max_age >= 0) && (time.Since(t) > samples_max_age) {
-					log.Infof("Alert entry too far behind, ts=%v", t)
+					log.Debugf("Alert entry too far behind, ts=%v", t)
 					continue
 				}
 				delete(labelSet, "Message")
