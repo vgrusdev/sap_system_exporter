@@ -74,7 +74,9 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ctx context.Context, c
 		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
 		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
-			return errors.Wrapf(err, "recordWorkProcessQueueStats")
+			log.Errorf("recordWorkProcessQueueStats: %v", err)
+			continue
+			//return errors.Wrapf(err, "recordWorkProcessQueueStats")
 		}
 
 		for _, process := range processInfo {
@@ -97,7 +99,9 @@ func (c *dispatcherCollector) recordWorkProcessQueueStats(ctx context.Context, c
 
 		queueStatistic, err := c.webService.GetQueueStatistic(ctx, url)
 		if err != nil {
-			return errors.Wrapf(err, "recordWorkProcessQueueStats")
+			log.Errorf("recordWorkProcessQueueStats: %v", err)
+			continue
+			//return errors.Wrapf(err, "recordWorkProcessQueueStats")
 		}
 
 		// for each work queue, we record a different line for each stat of that queue, with the type as a common label

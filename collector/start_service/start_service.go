@@ -132,7 +132,7 @@ func (c *startServiceCollector) recordProcesses(ctx context.Context, ch chan<- p
 		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
 		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
-			log.Warnf("GetProcessList error: %s", err)
+			log.Errorf("GetProcessList error: %s", err)
 			continue
 		}
 		for _, process := range processInfo {
@@ -142,7 +142,7 @@ func (c *startServiceCollector) recordProcesses(ctx context.Context, ch chan<- p
 			}
 			state, err := sapcontrol.StateColorToFloat(process.Dispstatus)
 			if err != nil {
-				log.Warnf("Process status value error: %s", err)
+				log.Errorf("Process status value error: %s", err)
 				//continue
 			}
 			ch <- c.MakeGaugeMetric(
@@ -197,7 +197,7 @@ func (c *startServiceCollector) recordProcessesPerInstance(ctx context.Context, 
 		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
 		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
-			log.Warnf("GetProcessList error: %s", err)
+			log.Errorf("GetProcessList error: %s", err)
 			continue
 		}
 		for _, process := range processInfo {

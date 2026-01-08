@@ -83,7 +83,7 @@ func (c *enqueueServerCollector) recordEnqStats(ctx context.Context, ch chan<- p
 
 	instanceInfo, err := c.webService.GetCachedInstanceList(ctx)
 	if err != nil {
-		return errors.Wrap(err, "rrecordEnqStats")
+		return errors.Wrap(err, "recordEnqStats")
 	}
 	log.Debugf("recordEnqStats: Instances in the list: %d", len(instanceInfo))
 
@@ -95,7 +95,9 @@ func (c *enqueueServerCollector) recordEnqStats(ctx context.Context, ch chan<- p
 		processInfo, err := c.webService.GetCachedProcessList(ctx, url)
 		//processList, err := c.webService.GetProcessList(ctx, url)
 		if err != nil {
-			return errors.Wrap(err, "recordEnqStats")
+			log.Errorf("recordEnqStats: %v", err)
+			continue
+			//return errors.Wrap(err, "recordEnqStats")
 		}
 
 		//for _, process := range processList.Processes {
@@ -112,7 +114,9 @@ func (c *enqueueServerCollector) recordEnqStats(ctx context.Context, ch chan<- p
 
 		enqStatistic, err := c.webService.EnqGetStatistic(ctx, url)
 		if err != nil {
-			return errors.Wrap(err, "recordEnqStats")
+			log.Errorf("recordEnqStats: %v", err)
+			continue
+			//return errors.Wrap(err, "recordEnqStats")
 		}
 
 		labels := []string{
