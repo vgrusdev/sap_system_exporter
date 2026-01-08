@@ -28,18 +28,20 @@ func NewLokiClient(myConfig *config.MyConfig) promtail.Client {
 		log.Info("loki_url option is empty, will not use LOKI to push Alerts")
 		return nil
 	}
-	bw := v.GetInt("loki_batch_wait")
-	if bw <= 0 {
-		bw = 100
-	}
+	bw := v.GetDuration("loki_batch_wait")
+	//bw := v.GetInt("loki_batch_wait")
+	//if bw <= 0 {
+	//	bw = 100
+	//}
 	bn := v.GetInt("loki_batch_entries_number")
 	if bn <= 0 {
 		bn = 1
 	}
-	timeout := v.GetInt("loki_http_timeout")
-	if timeout <= 0 {
-		timeout = 1000
-	}
+	timeout := v.GetDuration("loki_http_timeout")
+	//timeout := v.GetInt("loki_http_timeout")
+	//if timeout <= 0 {
+	//	timeout = 1000
+	//}
 	loc, err := time.LoadLocation(v.GetString("loki_time_location"))
 	if err != nil {
 		log.Errorf("Option loki_time_location incorrect: %s. Use UTC", err)
@@ -47,13 +49,15 @@ func NewLokiClient(myConfig *config.MyConfig) promtail.Client {
 	}
 
 	cfg := promtail.ClientConfig{
-		Name:               v.GetString("loki_name"),
-		PushURL:            lokiURL,
-		TenantID:           v.GetString("loki_tenantid"),
-		BatchWait:          time.Duration(bw) * time.Millisecond,
+		Name:     v.GetString("loki_name"),
+		PushURL:  lokiURL,
+		TenantID: v.GetString("loki_tenantid"),
+		//BatchWait:          time.Duration(bw) * time.Millisecond,
+		BatchWait:          bw,
 		BatchEntriesNumber: bn,
-		Timeout:            time.Duration(timeout) * time.Millisecond,
-		Location:           loc,
+		//Timeout:            time.Duration(timeout) * time.Millisecond,
+		Timeout:  timeout,
+		Location: loc,
 	}
 
 	log.Debugf("New client params: %v", cfg)

@@ -42,7 +42,7 @@ sap_control_user: ""
 sap_control_password: ""
 #
 send_alerts_to_prom: "yes""
-alert_samples_max_age: "1d"
+alert_samples_max_age: "2h"
 # Loki section.
 # sap-alerts will be written to the LOKI server in case of loki_url is not empty string.
 #
@@ -58,14 +58,14 @@ loki_name: "sap_alerts"
 loki_tenantid: "fake"
 #
 # loki_batch_wait - Max wait time (Milliseconds) before bunch of messages will be sent to LOKI
-loki_batch_wait: 100
+loki_batch_wait: "100ms"
 #
 # loki_batch_entries_number - Size of the buch buffer. 
 # batch will be pushed to LOKI in case number of messahes exceed loki_batch_entries_number or loki_batch_wait will expire
 loki_batch_entries_number: 32
 #
 # loki_http_timeout - HTTP POST timeout in case LOKI server does not responce
-loki_http_timeout: 1000
+loki_http_timeout: "1000ms"
 #
 # loki_time_location - Alert time Location
-loki_time_location = "Europe/Moscow"
+loki_time_location: "Europe/Moscow"
