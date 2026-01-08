@@ -170,6 +170,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("port", "9680")
 	v.SetDefault("log_level", "info")
 	v.SetDefault("sap_control_url", "https://localhost:50014")
+	v.SetDefault("sap_control_access_point", "/sap/bc/soap/rfc")
 	v.SetDefault("sap_control_domain", "")
 	v.SetDefault("tls_skip_verify", false)
 	v.SetDefault("sap_control_user", "")
