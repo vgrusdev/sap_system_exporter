@@ -53,7 +53,7 @@ func (c *alertsCollector) Collect(ch chan<- prometheus.Metric) {
 
 	err := c.recordAlerts(ctx, ch)
 	if err != nil {
-		log.Warnf("Alerts Collector scrape уккщк: %s", err)
+		log.Errorf("Alerts Collector: %s", err)
 		return
 	}
 }
@@ -133,6 +133,7 @@ func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus
 			instance.SID,
 			instance.Hostname,
 		}
+		log.Debugf("commonLabels: %v", commonLabels)
 
 		alertList, err := c.webService.GetAlerts(ctx, url)
 		if err != nil {
@@ -161,11 +162,12 @@ func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus
 		} else {
 			log.Debugf("Alerts in the list: %d", len(alert_item_list))
 		}
+		num_sent_to_loki := 0
 		for _, alert_item := range alert_item_list {
 
 			state, err := sapcontrol.StateColorToFloat(alert_item.Value)
 			if err != nil {
-				log.Warnf("SrecordAlerts: SAPControl Alert Value conversion data %v: %s", alert_item.Value, err)
+				log.Warnf("SrecordAlerts: Alert State conversion %v: %s", alert_item.Value, err)
 				continue
 			}
 			labels := append([]string{alert_item.Object,
@@ -211,8 +213,10 @@ func (c *alertsCollector) recordAlerts(ctx context.Context, ch chan<- prometheus
 					Line:   message,
 				}
 				loki_client.Single() <- &sInputEntry
+				num_sent_to_loki += 1
 			} // if loki_client != nil
 		} // for _, alert_item := range alert_item_list
+		log.Debugf("Alerts sent to loki: %d", num_sent_to_loki)
 	} // for _, instance := range instanceList.Instances
 	log.Debug("recordAlerts success")
 	return nil
